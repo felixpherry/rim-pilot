@@ -1,0 +1,19 @@
+name: Asset-free checks
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Compile asset-free projects and check repository contracts
+        run: make check
+      - name: Run pure contracts and self-contained CLI skeleton smoke
+        run: make test
+      - name: Clarify game coverage
+        run: echo 'No proprietary assets configured. Mod compilation and real-game acceptance NOT RUN.'

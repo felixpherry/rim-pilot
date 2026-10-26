@@ -12,6 +12,8 @@ The initial target is **Linux and RimWorld 1.6**, including Royalty, Ideology, B
 
 ## Status
 
-Planning is complete. Implementation has not started, and there is no installable mod or CLI yet.
+Contracts and build scaffolding exist; runtime observation is not implemented. There is no installable observation bridge yet. The standalone CLI skeleton exits 64 with a not-implemented diagnostic.
+
+See [build and test commands](docs/build.md) for asset-free checks and separately configured mod compilation. Compilation and pure contract tests are not real-game acceptance.
 
 RimWorld and its DLCs are required separately. This repository does not include game binaries, assets or saves.

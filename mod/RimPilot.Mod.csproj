@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <AssemblyName>RimPilot.Mod</AssemblyName>
+    <RootNamespace>RimPilot.Mod</RootNamespace>
+    <!-- Unity supplies Mono's framework closure. Never restore desktop reference packs. -->
+    <AutomaticallyUseReferenceAssemblyPackages>false</AutomaticallyUseReferenceAssemblyPackages>
+    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+    <NoStdLib>true</NoStdLib>
+    <EnableDefaultItems>true</EnableDefaultItems>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <GameReferencesFile Condition="'$(GameReferencesFile)' == ''">$(MSBuildThisFileDirectory)../.local/game-references.props</GameReferencesFile>
+  </PropertyGroup>
+  <Import Project="../shared/Json/JsonDependency.props" />
+  <Import Project="../shared/Protocol/Protocol.props" />
+  <Import Project="$(GameReferencesFile)" Condition="Exists('$(GameReferencesFile)')" />
+  <Target Name="RequireLocalGameReferences" BeforeTargets="PrepareForBuild">
+    <Error Condition="!Exists('$(GameReferencesFile)')" Text="Missing private game references. See docs/build.md; run ReferenceAudit against your installed RimWorld 1.6 and Harmony first." />
+  </Target>
+  <Target Name="RejectProprietaryCopyLocal" AfterTargets="ResolveReferences">
+    <ItemGroup>
+      <_ForbiddenCopy Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.RimPilotGameReference)' == 'true'" />
+    </ItemGroup>
+    <Error Condition="'@(_ForbiddenCopy)' != ''" Text="Game/Harmony dependencies must never be copy-local." />
+  </Target>
+</Project>

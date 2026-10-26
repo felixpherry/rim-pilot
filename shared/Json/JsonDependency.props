@@ -1,0 +1,16 @@
+<Project>
+  <PropertyGroup>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <RestoreLockedMode Condition="'$(RestoreLockedMode)' == ''">true</RestoreLockedMode>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Use the same audited net45 binary on Mono, CLI and pure tests. No automatic TFM asset selection. -->
+    <PackageReference Include="Newtonsoft.Json" Version="[13.0.3]" GeneratePathProperty="true" ExcludeAssets="all" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>$(PkgNewtonsoft_Json)/lib/net45/Newtonsoft.Json.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Compile Include="$(MSBuildThisFileDirectory)*.cs" Link="Json/%(Filename)%(Extension)" />
+    <None Include="$(MSBuildThisFileDirectory)../../licenses/Newtonsoft.Json.LICENSE.md" Link="licenses/Newtonsoft.Json.LICENSE.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+  </ItemGroup>
+</Project>

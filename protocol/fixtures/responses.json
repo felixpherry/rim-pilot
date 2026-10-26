@@ -1,0 +1,28 @@
+{
+  "note":"Synthetic contract examples, not game observations or runtime capability claims.",
+  "accepted":[
+    {"v":1,"id":"a","ok":true,"data":{"session":"s_11111111111111111111111111111111","protocol":1}},
+    {"v":1,"id":"h","ok":true,"data":{"state":"loading"}},
+    {"v":1,"id":"c","ok":true,"data":{"capabilities":[{"name":"pawn.visible_health","state":"unverified","schema":"pawn-v1"},{"name":"world.research","state":"unsupported","schema":"none"}]}},
+    {"v":1,"id":"s","ok":true,"data":{"sample":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222"},"capture":"c_88888888888888888888888888888888","frame":20,"phase":"root_update_postfix"},"scene":"menu","build":"synthetic"}},
+    {"v":1,"id":"d","ok":true,"data":{"sample":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222","game":"g_33333333333333333333333333333333","map":"m_44444444444444444444444444444444"},"capture":"c_88888888888888888888888888888888","frame":20,"phase":"root_update_postfix","tick":1},"pawn":{"pawn":"p_55555555555555555555555555555555","label":"雪 😀","status":["awake"],"needs":[{"label":"Food","level":0.5}],"health":[{"label":"Bruise","part":"Left arm"}],"gear":[{"label":"Jacket","slot":"apparel"}],"job":"Standing"}}},
+    {"v":1,"id":"p","ok":true,"data":{"sample":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222","game":"g_33333333333333333333333333333333","map":"m_44444444444444444444444444444444"},"capture":"c_88888888888888888888888888888888","frame":20,"phase":"root_update_postfix","tick":1},"snapshot":"q_66666666666666666666666666666666","basis":"eligible_observed_snapshot","items":[{"pawn":"p_55555555555555555555555555555555","label":"雪 😀"}],"complete":false,"next":"q_99999999999999999999999999999999"}},
+    {"v":1,"id":"t","ok":true,"data":{"sample":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222","game":"g_33333333333333333333333333333333","map":"m_44444444444444444444444444444444"},"capture":"c_88888888888888888888888888888888","frame":20,"phase":"root_update_postfix","tick":1},"snapshot":"q_66666666666666666666666666666666","basis":"eligible_observed_snapshot","items":[{"thing":"t_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","label":"Steel","x":10,"z":10,"stackUnits":5}],"complete":true}},
+    {"v":1,"id":"r","ok":true,"data":{"sample":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222","game":"g_33333333333333333333333333333333","map":"m_44444444444444444444444444444444"},"capture":"c_88888888888888888888888888888888","frame":20,"phase":"root_update_postfix"},"basis":"eligible_observed_direct_spawned_stack_units","items":[{"label":"Steel","stackUnits":5}]}},
+    {"v":1,"id":"u","ok":true,"data":{"sample":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222"},"capture":"c_88888888888888888888888888888888","frame":20,"phase":"root_update_postfix"},"selection":[],"windows":[{"kind":"main_menu"}]}},
+    {"v":1,"id":"i","ok":true,"data":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222"},"capture":"c_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","frame":21,"phase":"completed_render","width":1,"height":1,"scale":1,"encoding":"png_base64_chunks","bytes":68,"chunks":["iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j4C8AAAAASUVORK5CYII="]}},
+    {"v":1,"id":"e","ok":true,"data":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222"},"items":[{"kind":"message","text":"Public synthetic message"}],"next":"e_77777777777777777777777777777777"}},
+    {"v":1,"id":"x","ok":false,"error":{"code":"unavailable"}},
+    {"v":1,"ok":false,"error":{"code":"authentication_failed"}},
+    {"v":1,"id":"e","ok":false,"error":{"code":"event_gap"}},
+    {"v":1,"id":"e","ok":true,"data":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222"},"items":[{"kind":"lifecycle","text":"observation_ready"}],"next":"e_77777777777777777777777777777777"}}
+  ],
+  "rejected":[
+    {"v":1,"id":"x","ok":false,"error":{"code":"unavailable","hiddenTarget":"secret"}},
+    {"v":1,"id":"x","ok":false,"error":{"code":"unknown_error"}},
+    {"v":1,"id":"x","ok":true,"data":{"capabilities":[{"name":"world","state":"implemented_but_unproven","schema":"world-v1"}]}},
+    {"v":1,"id":"x","ok":true,"data":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222"},"items":[],"next":"e_77777777777777777777777777777777","lostCount":12}},
+    {"v":1,"id":"x","ok":true,"data":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222"},"items":[{"kind":"lifecycle","text":"hidden incident attempted"}],"next":"e_77777777777777777777777777777777"}},
+    {"v":1,"id":"x","ok":true,"data":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222"},"items":[{"kind":"lifecycle","text":"observation_ready","label":"debug flag"}],"next":"e_77777777777777777777777777777777"}}
+  ]
+}
