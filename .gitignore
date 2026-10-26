@@ -1,0 +1,35 @@
+# Local planning and review artifacts
+.plans/
+.lavish/
+
+# Credentials and machine-local settings
+.env
+.env.*
+!.env.example
+.local/
+.cache/
+
+# Build outputs and downloaded dependencies
+**/bin/
+**/obj/
+artifacts/
+dist/
+*.dll
+*.exe
+*.pdb
+*.nupkg
+
+# Local game installations and player data
+.game/
+game/
+RimWorldLinux_Data/
+Saves/
+*.rws
+*.rws.old
+*.rwtmp
+
+# Editor and OS files
+.vs/
+.idea/
+*~
+.DS_Store
