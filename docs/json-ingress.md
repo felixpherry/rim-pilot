@@ -1,14 +1,14 @@
 # JSON dependency and ingress boundary
 
-Foundation only: [wire v1](../protocol/wire-v1.md) now defines executable envelope/authentication/framing/DTO contracts, but no listener or observation routes exist yet. Both endpoint projects and the asset-free test executable link the same `shared/Json/*.cs` and `shared/Protocol/*.cs`. Later transport must call `StrictJson.Parse` through the concrete request reader before mapping any request, including authentication. Do not introduce a second parser with different acceptance rules.
+[Wire v1](../protocol/wire-v1.md) defines executable envelope/authentication/framing/DTO contracts. [Bounded transport](transport.md) and [bootstrap CLI routes](bootstrap-commands.md) now use them; baseline observations remain unavailable. Both endpoint projects and the asset-free test executable link the same `shared/Json/*.cs` and `shared/Protocol/*.cs`. Transport calls `StrictJson.Parse` through the concrete request reader before mapping any request, including authentication. Do not introduce a second parser with different acceptance rules.
 
 ## Pinned redistributable candidate
 
 - **Newtonsoft.Json 13.0.3**, MIT, upstream repository commit `0a2e291c0d9c0c7675d445703e51750363a549ef` (package metadata). Original notice: `licenses/Newtonsoft.Json.LICENSE.md`.
 - `shared/Json/JsonDependency.props` requires exact NuGet version `[13.0.3]`, checked-in content-hash lock files and locked restore. Intentional upgrades require updating the pin/locks and repeating the audit/tests.
 - Automatic package assets are excluded. All three projects explicitly reference **`lib/net45/Newtonsoft.Json.dll`**, including the modern CLI/tests, rather than silently selecting a different runtime asset. This asset has no NuGet dependencies. Its SHA-256 is `e1e27af7b07eeedf5ce71a9255f0422816a6fc5849a483c6714e1b472044fa9d`.
-- Mod copies this licensed dependency, not any game/Unity/Harmony binary. CLI bundles the dependency in its single-file executable. Both build/publish outputs retain the MIT notice under `licenses/`; eventual package tooling must preserve it. Package downloads stay in private NuGet cache; no binary is checked in.
-- Compilation against installed Mono reference assemblies and pure tests on .NET do **not** prove Unity Mono loading. Shared AppDomain assembly resolution, full solo mod-profile compatibility and real-game Unicode/numeric behavior remain deferred to isolated product startup/authentication tests. No game launched for this unit.
+- Mod copies this licensed dependency, not any game/Unity/Harmony binary. CLI bundles the dependency in its single-file executable. Both build/publish outputs retain the MIT notice under `licenses/`; [complete-package verification](package.md) also requires it. Package downloads stay in private NuGet cache; no binary is checked in.
+- Compilation against installed Mono reference assemblies and pure tests on .NET do **not** prove Unity Mono loading. A separate [isolated full-profile Unity Mono menu run](../tests/coverage/session-adversarial.md#isolated-menu-runtime-proof) exercised the packaged dependency through real auth/health/capabilities and three auth negatives. It does not prove the full strict-ingress/Unicode/numeric matrix or every shared-AppDomain conflict under Mono; those remain deferred to isolated adversarial tests.
 
 ## Why a strict preflight exists
 

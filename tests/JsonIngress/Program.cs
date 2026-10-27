@@ -14,8 +14,19 @@ internal static class Program
     private static int passed;
     private static int failed;
 
-    private static void Main()
+    private static void Main(string[] args)
     {
+        if (!OperatingSystem.IsLinux()) throw new PlatformNotSupportedException("Native tests require Linux x64.");
+        if (args.Length == 2 && args[0] == "native-fs-umask")
+        {
+            Environment.Exit(NativeFilesystemTests.RunUmaskChild(args[1]));
+            return;
+        }
+        if (args.Length >= 1 && args.Length <= 2 && args[0] == "transport")
+        {
+            Environment.Exit(TransportTests.Run(args.Length == 2 ? args[1] : null) == 0 ? 0 : 1);
+            return;
+        }
         Test("same pinned net45 dependency under pure .NET tests (not Mono proof)", () =>
         {
             Assembly library = typeof(JToken).Assembly;
@@ -187,7 +198,13 @@ internal static class Program
         Console.WriteLine($"JSON ingress: {passed} passed; {failed} failed. .NET tests only; Unity Mono loading deferred.");
         int wireFailed = WireTests.Run();
         int safetyFailed = ObservationSafetyTests.Run();
-        if (failed != 0 || wireFailed != 0 || safetyFailed != 0) Environment.Exit(1);
+        int discoveryFailed = DiscoveryTests.Run();
+        int nativeFailed = NativeFilesystemTests.Run();
+        int transportFailed = TransportTests.Run();
+        int sessionsFailed = SessionDiscoveryTests.Run();
+        int lifecycleFailed = ProcessLifecycleTests.Run();
+        int dispatcherFailed = ReadDispatcherTests.Run();
+        if (failed != 0 || wireFailed != 0 || safetyFailed != 0 || discoveryFailed != 0 || nativeFailed != 0 || transportFailed != 0 || sessionsFailed != 0 || lifecycleFailed != 0 || dispatcherFailed != 0) Environment.Exit(1);
     }
 
     private static JToken Parse(string text) { return StrictJson.Parse(Encoding.UTF8.GetBytes(text)); }

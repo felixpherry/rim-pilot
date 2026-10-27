@@ -18,7 +18,20 @@ namespace RimPilot.Protocol
         internal const int CapturePngBytes = 3141632;
         internal const int CaptureChunkChars = 16384;
         internal const int MaxConnections = 4;
+        internal const int ListenBacklog = 4;
+        internal const int AdmissionsPerSecond = 8;
+        internal const int AdmissionBurst = 16;
+        internal const int AdmissionRetryMs = 125;
+        internal const int SocketBufferBytes = 16384;
+        internal const int SocketWatchdogMs = 25;
+        internal const int ShutdownTimeoutMs = 1000;
+        internal const int RequestBytesPerSecond = (RequestBytes + 4) * RequestsPerSecond;
+        internal const int RequestByteBurst = (RequestBytes + 4) * RequestBurst;
+        internal const int ResponseBytesPerSecond = CaptureResponseBytes + 4;
+        internal const int ResponseByteBurst = CaptureResponseBytes + 4;
         internal const int PendingRequests = 16;
+        internal const int ReadsPerUpdate = 4;
+        internal const int TrackedMaps = 128;
         internal const int RequestsPerSecond = 8;
         internal const int RequestBurst = 16;
         internal const int AuthTimeoutMs = 2000;
@@ -62,13 +75,17 @@ namespace RimPilot.Protocol
         // UInt32 big-endian byte length, excluding header. Never allocate from an unchecked length.
         // Caller passes a linked, finite deadline token and closes connection on failure. Cancellation
         // support depends on Stream implementation; socket owner must close on deadline as backstop.
-        internal static async Task<byte[]> ReadAsync(Stream stream, int maxBytes, CancellationToken deadline)
+        internal static async Task<byte[]> ReadAsync(Stream stream, int maxBytes, CancellationToken deadline,
+            byte? firstHeaderByte = null, Action<int>? reserveBytes = null)
         {
             CheckCeiling(maxBytes);
             var header = new byte[4];
-            await ExactAsync(stream, header, deadline).ConfigureAwait(false);
+            if (firstHeaderByte.HasValue) header[0] = firstHeaderByte.Value;
+            await ExactAsync(stream, header, deadline, firstHeaderByte.HasValue ? 1 : 0).ConfigureAwait(false);
             uint length = ((uint)header[0] << 24) | ((uint)header[1] << 16) | ((uint)header[2] << 8) | header[3];
             if (length == 0 || length > maxBytes) throw new WireException(WireError.InvalidFrame);
+            // Trusted transport quota callback, after length validation but before allocation/read.
+            reserveBytes?.Invoke((int)length + 4);
             var body = new byte[(int)length];
             await ExactAsync(stream, body, deadline).ConfigureAwait(false);
             return body;
@@ -85,9 +102,8 @@ namespace RimPilot.Protocol
             await stream.WriteAsync(body, 0, body.Length, deadline).ConfigureAwait(false);
         }
 
-        private static async Task ExactAsync(Stream stream, byte[] buffer, CancellationToken deadline)
+        private static async Task ExactAsync(Stream stream, byte[] buffer, CancellationToken deadline, int offset = 0)
         {
-            int offset = 0;
             while (offset < buffer.Length)
             {
                 deadline.ThrowIfCancellationRequested();

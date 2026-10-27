@@ -1,19 +1,14 @@
-using System;
-using HarmonyLib;
-using UnityEngine;
+using RimPilot.Mod.Bridge;
 using Verse;
 
 namespace RimPilot.Mod
 {
-    // Build skeleton only: no patches, listener, observation or control routes yet.
+    // Verse constructs mods during asynchronous loading. Bootstrap is metadata/BCL-only.
     public sealed class RimPilotMod : Verse.Mod
     {
         public RimPilotMod(ModContentPack content) : base(content)
         {
+            ModBootstrap.Bootstrap();
         }
-
-        // Keep actual Harmony and Unity references in the compiled compatibility surface.
-        internal static Type HarmonyRuntime => typeof(Harmony);
-        internal static Type UnityRuntime => typeof(Texture2D);
     }
 }

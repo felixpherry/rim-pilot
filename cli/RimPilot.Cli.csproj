@@ -6,6 +6,8 @@
     <RootNamespace>RimPilot.Cli</RootNamespace>
     <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
+    <!-- Keep bundled runtime and redistribution notices on the same explicit pin. -->
+    <RuntimeFrameworkVersion>10.0.14</RuntimeFrameworkVersion>
     <PublishSingleFile>true</PublishSingleFile>
     <PublishTrimmed>false</PublishTrimmed>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>

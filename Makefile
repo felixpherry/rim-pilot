@@ -1,4 +1,4 @@
-.PHONY: check test build build-game
+.PHONY: check test build build-game package verify-package
 
 # Asset-free defaults. Never infer or launch an installed game.
 check:
@@ -13,3 +13,10 @@ build:
 # Explicit proprietary references; local compilation, not runtime acceptance.
 build-game:
 	python3 scripts/project.py build-game
+
+# Complete development distributable; requires the same explicit reference roots.
+package:
+	python3 scripts/project.py package
+
+verify-package:
+	python3 scripts/project.py verify-package

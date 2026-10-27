@@ -67,6 +67,27 @@ namespace RimPilot.Protocol
                 default: throw new ArgumentOutOfRangeException(nameof(code));
             }
         }
+        // Bootstrap readiness is scheduling readiness only, NOT audited observation safety.
+        // No scope or baseline data is released before phase-3 adapters exist.
+        internal static JObject Health(bool ready) => new JObject { ["state"] = ready ? "ready" : "loading" };
+
+        internal static JObject BootstrapCapabilities() => Capabilities(new[]
+        {
+            new Capability("auth", CapabilityState.Available, "auth-v1"),
+            new Capability("health", CapabilityState.Available, "health-v1"),
+            new Capability("capabilities", CapabilityState.Available, "capabilities-v1"),
+            new Capability("summary", CapabilityState.Unverified, "summary-v1"),
+            new Capability("pawns.list", CapabilityState.Unverified, "pawns-v1"),
+            new Capability("pawn.get", CapabilityState.Unverified, "pawn-v1"),
+            new Capability("things.list", CapabilityState.Unverified, "things-v1"),
+            new Capability("resources", CapabilityState.Unverified, "resources-v1"),
+            new Capability("ui", CapabilityState.Unverified, "ui-v1"),
+            new Capability("screenshot", CapabilityState.Unverified, "screenshot-v1"),
+            new Capability("events.read", CapabilityState.Unverified, "events-v1"),
+            new Capability("ui.rendered_controls", CapabilityState.Unsupported, "none"),
+            new Capability("specialist.structured", CapabilityState.Unsupported, "none")
+        });
+
         internal static JObject Capabilities(IReadOnlyList<Capability> capabilities)
         {
             if (capabilities.Count > 64) throw new WireException(WireError.ResponseTooLarge);

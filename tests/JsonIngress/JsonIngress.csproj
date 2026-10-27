@@ -6,6 +6,10 @@
   <Import Project="../../shared/Json/JsonDependency.props" />
   <Import Project="../../shared/Protocol/Protocol.props" />
   <ItemGroup>
+    <Compile Include="../../mod/Bridge/ProcessLifecycle.cs" Link="Mod/ProcessLifecycle.cs" />
+    <Compile Include="../../mod/Bridge/ReadDispatcher.cs" Link="Mod/ReadDispatcher.cs" />
+    <Compile Include="../../cli/SessionDiscovery.cs" Link="Cli/SessionDiscovery.cs" />
+    <Compile Include="../../cli/CliCommands.cs" Link="Cli/CliCommands.cs" />
     <None Include="../../protocol/fixtures/*.json" Link="fixtures/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

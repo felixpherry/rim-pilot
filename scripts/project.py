@@ -68,21 +68,37 @@ def test():
     dotnet("run", "--project", "tests/JsonIngress", "-c", "Release", "-p:RestoreLockedMode=true")
     build()
     build()  # Repeat publish must preserve external redistribution notice.
-    # Exercise published executable without SDK/shared-runtime lookup. This expected
-    # failure is a skeleton/runtime smoke, never a successful observation claim.
+    smoke_cli()
+    print("Game compilation/runtime tests NOT RUN by asset-free test; use build-game for compilation only.")
+
+
+def smoke_cli():
+    # Run operational commands against an owned empty registry, never host sessions.
+    # No SDK/shared-runtime lookup; usage/no-session failures are not observations.
     (ROOT / ".local").mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(dir=ROOT / ".local", prefix="cli-smoke-") as temporary:
+        runtime = Path(temporary) / "runtime"
+        runtime.mkdir(mode=0o700)
+        home = Path(temporary) / "home"
+        home.mkdir(mode=0o700)
         env = os.environ.copy()
         env.update({"DOTNET_ROOT": temporary, "DOTNET_ROOT_X64": temporary,
                     "DOTNET_MULTILEVEL_LOOKUP": "0", "DOTNET_BUNDLE_EXTRACT_BASE_DIR": temporary,
-                    "PATH": temporary})
-        result = subprocess.run([str(CLI_OUTPUT / "rim-pilot")], cwd=temporary, env=env,
-                                capture_output=True, text=True, timeout=30)
-        if (result.returncode != 64 or result.stdout or result.stderr !=
-                "rim-pilot: build skeleton; observation commands are not implemented.\n"):
-            raise RuntimeError("Self-contained CLI skeleton smoke failed.")
-    print("Published CLI ran without SDK/shared-runtime lookup; exit 64 expected (not an observation pass).")
-    print("Game compilation/runtime tests NOT RUN by asset-free test; use build-game for compilation only.")
+                    "PATH": temporary, "HOME": str(home), "XDG_RUNTIME_DIR": str(runtime)})
+        cases = (([], 64, "", "usage: {sessions|health|capabilities} [--session SESSION]"),
+                 (["sessions"], 69, {"v": 1, "sessions": []}, "no_live_session."),
+                 (["health"], 69, "", "no_live_session."),
+                 (["capabilities"], 69, "", "no_live_session."))
+        for arguments, code, output, diagnostic in cases:
+            result = subprocess.run([str(CLI_OUTPUT / "rim-pilot"), *arguments], cwd=temporary, env=env,
+                                    capture_output=True, text=True, timeout=30)
+            if (result.returncode != code or result.stderr != f"rim-pilot: {diagnostic}\n"
+                    or (json.loads(result.stdout) if isinstance(output, dict) else result.stdout) != output):
+                raise RuntimeError("Self-contained CLI usage/empty-registry smoke failed.")
+        registry = runtime / "rim-pilot/v1"
+        if not registry.is_dir() or any(registry.iterdir()):
+            raise RuntimeError("Self-contained CLI smoke did not use its empty private registry.")
+    print("Published CLI usage/sessions/health/capabilities ran SDK-free against scratch registry; no observation pass.")
 
 
 def build_game():
@@ -113,11 +129,23 @@ def build_game():
     print("Actual net472 mod compiled; copy-local negative and output boundary passed. No Mono/game execution.")
 
 
+def package():
+    # A package always gets freshly audited configured mod inputs and published CLI.
+    build_game()
+    build()
+    run(sys.executable, ROOT / "scripts/package.py", "build")
+
+
+def verify_package():
+    run(sys.executable, ROOT / "scripts/package.py", "verify")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("check", "test", "build", "build-game"))
+    parser.add_argument("command", choices=("check", "test", "build", "build-game", "package", "verify-package"))
     command = parser.parse_args().command
-    {"check": check, "test": test, "build": build, "build-game": build_game}[command]()
+    {"check": check, "test": test, "build": build, "build-game": build_game,
+     "package": package, "verify-package": verify_package}[command]()
 
 
 if __name__ == "__main__":

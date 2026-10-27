@@ -105,6 +105,58 @@ class ProjectCommandTests(unittest.TestCase):
             self.assertEqual(fake_dotnet.call_count, 1)
             fake_run.assert_not_called()
 
+    def test_published_smoke_uses_only_scratch_registry_without_sdk_lookup(self):
+        smoke = COMMANDS["smoke_cli"]
+        calls = []
+
+        def execute(command, **kwargs):
+            calls.append((command, kwargs))
+            runtime = Path(kwargs["env"]["XDG_RUNTIME_DIR"])
+            registry = runtime / "rim-pilot/v1"
+            registry.mkdir(parents=True, exist_ok=True)
+            self.assertEqual(runtime.stat().st_mode & 0o777, 0o700)
+            self.assertTrue(runtime.is_relative_to(self.root / ".local"))
+            self.assertTrue(Path(kwargs["env"]["HOME"]).is_relative_to(self.root / ".local"))
+            for name in ("DOTNET_ROOT", "DOTNET_ROOT_X64", "DOTNET_BUNDLE_EXTRACT_BASE_DIR", "PATH"):
+                self.assertEqual(kwargs["env"][name], kwargs["cwd"])
+            self.assertEqual(kwargs["env"]["DOTNET_MULTILEVEL_LOOKUP"], "0")
+            self.assertEqual(kwargs["timeout"], 30)
+            if len(command) == 1:
+                return subprocess.CompletedProcess(command, 64, "",
+                    "rim-pilot: usage: {sessions|health|capabilities} [--session SESSION]\n")
+            output = '{"v":1,"sessions":[]}\n' if command[1] == "sessions" else ""
+            return subprocess.CompletedProcess(command, 69, output, "rim-pilot: no_live_session.\n")
+
+        with patch.dict(smoke.__globals__, {"ROOT": self.root}), patch("subprocess.run", side_effect=execute):
+            smoke()
+        self.assertEqual([command[1:] for command, _ in calls],
+                         [[], ["sessions"], ["health"], ["capabilities"]])
+        self.assertFalse(any((self.root / ".local").iterdir()))
+
+    def test_published_smoke_rejects_obsolete_or_invalid_usage_results(self):
+        smoke = COMMANDS["smoke_cli"]
+        for result in (subprocess.CompletedProcess([], 64, "", "not implemented\n"),
+                       subprocess.CompletedProcess([], 0, "", ""),
+                       subprocess.CompletedProcess([], 64, "unexpected output",
+                           "rim-pilot: usage: {sessions|health|capabilities} [--session SESSION]\n")):
+            with self.subTest(result=result), patch.dict(smoke.__globals__, {"ROOT": self.root}), \
+                    patch("subprocess.run", return_value=result):
+                with self.assertRaisesRegex(RuntimeError, "smoke failed"):
+                    smoke()
+
+    def test_published_smoke_rejects_nonempty_or_wrong_registry_result(self):
+        smoke = COMMANDS["smoke_cli"]
+        usage = subprocess.CompletedProcess([], 64, "",
+            "rim-pilot: usage: {sessions|health|capabilities} [--session SESSION]\n")
+        for result in (subprocess.CompletedProcess([], 0, '{"v":1,"sessions":[]}', ""),
+                       subprocess.CompletedProcess([], 69, '{"v":1,"sessions":[{"status":"live"}]}',
+                           "rim-pilot: no_live_session.\n"),
+                       subprocess.CompletedProcess([], 69, "", "rim-pilot: registry_rejected.\n")):
+            with self.subTest(result=result), patch.dict(smoke.__globals__, {"ROOT": self.root}), \
+                    patch("subprocess.run", side_effect=[usage, result]):
+                with self.assertRaises((RuntimeError, ValueError)):
+                    smoke()
+
     def test_subprocess_failure_is_not_silenced(self):
         run = COMMANDS["run"]
         with patch("subprocess.run", side_effect=subprocess.CalledProcessError(3, "test")) as child:

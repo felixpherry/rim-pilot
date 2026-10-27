@@ -2,7 +2,7 @@
 
 Contract: [normal-player field/type rules](../protocol/visibility.md).
 
-**Status:** source-supported design, not product implementation. Baseline repository has no mod/CLI or project check/test role. Private inspection covered installed RimWorld 1.6.4871 rev600 and relevant selection, health, needs, report and resource APIs. Source symbols below locate the behavior without distributing proprietary code, local dependencies or private paths. Local decompilation line numbers are intentionally not public API identifiers.
+**Status:** source-supported visibility design, not implemented observation adapters. Mod/CLI bootstrap, host checks and configured compilation now exist; none establishes field visibility or real-game safety. Private inspection covered installed RimWorld 1.6.4871 rev600 and relevant selection, health, needs, report and resource APIs. Source symbols below locate the behavior without distributing proprietary code, local dependencies or private paths. Local decompilation line numbers are intentionally not public API identifiers.
 
 The approved standalone plan and milestone scope require useful off-camera, player-knowable observations with no gameplay/UI changes. M1 does not authorize M2 controls, M3 co-play, M4 complete specialist coverage or M5 qualification. All five DLCs remain in scope; missing scenario/type evidence must remain visible as a gap. These documents establish the visibility boundary only. They neither implement the adapters nor satisfy baseline/acceptance requirements by marking fields unsupported.
 

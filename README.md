@@ -12,8 +12,8 @@ The initial target is **Linux and RimWorld 1.6**, including Royalty, Ideology, B
 
 ## Status
 
-Contracts and build scaffolding exist; runtime observation is not implemented. There is no installable observation bridge yet. The standalone CLI skeleton exits 64 with a not-implemented diagnostic.
+Development mod/CLI packaging and explicit-target install/removal exist. Bounded private transport, main-thread lifecycle/dispatch and CLI `sessions`, `health`, `capabilities` are implemented. A separately authorized isolated full-profile Unity Mono menu run proved packaged session discovery, authentication, health and capabilities. Baseline game observations, events and screenshots remain unavailable; pause/live/load/quit behavior and observation safety remain unproven. No gameplay or raw UI input routes exist.
 
-See [build and test commands](docs/build.md) for asset-free checks and separately configured mod compilation. Compilation and pure contract tests are not real-game acceptance.
+See [build and test commands](docs/build.md), [package/install/removal instructions](docs/package.md) and [bootstrap CLI commands](docs/bootstrap-commands.md). Asset-free checks and configured net472 compilation are separate from real-game acceptance. CLI exit 64 means usage, not an observation result; bootstrap success does not establish baseline readiness.
 
 RimWorld and its DLCs are required separately. This repository does not include game binaries, assets or saves.

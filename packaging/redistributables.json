@@ -1,0 +1,14 @@
+{
+  "runtime": {
+    "package": "microsoft.netcore.app.runtime.linux-x64",
+    "version": "10.0.14",
+    "notices": {
+      "LICENSE.TXT": "cfc21f5e8bd655ae997eec916138b707b1d290b83272c02a95c9f821b8c87310",
+      "THIRD-PARTY-NOTICES.TXT": "66f1d4e44973185519bb4aa8a9718eb22fc7af2cc532e3ae9cfc4c127ee7fc54"
+    }
+  },
+  "newtonsoft": {
+    "version": "13.0.3",
+    "net45Sha256": "e1e27af7b07eeedf5ce71a9255f0422816a6fc5849a483c6714e1b472044fa9d"
+  }
+}

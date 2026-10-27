@@ -1,10 +1,10 @@
 # Build foundation (Linux x64)
 
-This is a compilation skeleton with shared [wire v1 contracts](../protocol/wire-v1.md), not an operational observation bridge. The mod has no patches or listener; the CLI exits 64 with an explicit not-implemented diagnostic. Installation, packaging and runtime game proof belong to later phases. Repository-owned commands below cover this foundation only.
+Shared [wire v1 contracts](../protocol/wire-v1.md), private bounded transport, CLI session selection and authenticated [health/capabilities](bootstrap-commands.md) exist. The mod's [process lifecycle](mod-lifecycle.md) wires a private listener after game-thread quitting registration; [main-thread dispatch](read-dispatch.md) keeps baseline observations fail-closed pending audited adapters/safety sampling. [Development packaging and explicit-target installation/removal](package.md) exist. Baseline JSON observations, events and screenshots remain unavailable. Separate [isolated full-profile Mono menu evidence](../tests/coverage/session-adversarial.md#isolated-menu-runtime-proof) proves packaged bootstrap commands only; broader runtime behavior and observation safety remain unproven. Repository-owned commands below distinguish host checks from configured mod compilation; none launches a game.
 
 ## Pinned private SDK
 
-Requirements: Linux x64, Python 3.12+ (including safe tar extraction filters), GNU Make, network access for the first SDK/runtime-pack download, and normal .NET Linux native dependencies (including ICU).
+Requirements: Linux x64, Python 3.12+ (including safe tar extraction filters), GNU Make, network access for the first SDK/runtime-pack download, normal .NET Linux native dependencies (including ICU), and a C11 compiler (`cc`) plus glibc development headers for the [native filesystem ABI check](native-filesystem.md).
 
 Run all commands from the repository root:
 
@@ -20,11 +20,11 @@ SDK, NuGet and CLI-home caches live under `${XDG_CACHE_HOME:-$HOME/.cache}/rim-p
 
 ```sh
 make check  # Release-build auditor, CLI and contract harness; run Python guards
-make test   # Full pure Python/C# suites; publish and SDK-free CLI skeleton smoke
+make test   # Full host Python/C# suites; publish and SDK-free CLI/empty-registry smoke
 make build  # Publish self-contained CLI only; check redistributable output allowlist
 ```
 
-These commands never discover or compile against game assets, even when a private reference file already exists. `make check` treats C# warnings as errors. `make test` runs the shared strict-ingress, wire and observation-safety harness, schema/fixture/inventory/build guards, then launches the published CLI with SDK/shared-runtime lookup removed. Its expected exit **64** and not-implemented diagnostic prove only that the self-contained skeleton starts, not that an observation succeeds. Game tests are explicitly reported **NOT RUN**. No separate lint/format command is configured; command roles are defined in [AGENTS.md](../AGENTS.md).
+These commands never discover or compile against game assets, even when a private reference file already exists. `make check` treats C# warnings as errors. `make test` runs shared strict-ingress/wire/safety/discovery, loopback transport, CLI response validation, lifecycle/dispatch and host-native private-filesystem suites, plus Python schema/fixture/inventory/build/ABI guards and scratch package/installer adversarial recovery tests. It publishes twice, checks the explicit output allowlist, then launches the CLI with SDK/shared-runtime lookup removed and a scratch private `XDG_RUNTIME_DIR` (never the host registry). Smoke checks usage (exit **64**), `sessions` (empty JSON list, exit **69**) and `health`/`capabilities` (fixed `no_live_session`, exit **69**). These prove SDK-free startup and empty-registry handling, not successful authentication or observations. Game tests are explicitly reported **NOT RUN**. No separate lint/format command is configured; command roles are defined in [AGENTS.md](../AGENTS.md).
 
 Public CI (`.github/workflows/check.yml`) runs `make check` and `make test` without proprietary assets. It neither runs the mod nor uploads local reference configuration or build outputs. Dependency restores are locked to committed package versions/content hashes. Commands fail on compiler/test/output-boundary errors; they never count missing game assets as game coverage.
 
@@ -65,4 +65,12 @@ The mod uses `net472` compatibility attributes and language/runtime constraints,
 
 The mod's own assembly/PDB appear in `mod/bin/Release/net472/`, alongside the pinned redistributable Newtonsoft.Json 13.0.3 net45 dependency, its XML documentation and MIT notice. See [JSON ingress](json-ingress.md) for dependency selection, strict parsing limits, explicit DTO mapping and deferred Mono runtime proof. Game, Unity and Harmony assemblies are runtime-provided and non-copy-local. A build target rejects game-reference copy-local items before the copy phase; neither game binaries nor a second Harmony belong in deliverables.
 
-CLI output under `artifacts/cli/linux-x64/` contains the self-contained CLI (including bundled JSON dependency), its PDB and external JSON license notice; dependency XML documentation may also appear. The notice is explicitly excluded from the single-file bundle so repeated publication preserves a readable redistribution notice. `make test` publishes twice to check that boundary. Build caches, private reference configuration and downloaded dependencies stay ignored. No game launch, installation, personal profile/settings update or save access is part of these commands. Later packaging must validate the complete package independently; these foundation checks do not claim an installable M1 pass.
+CLI output under `artifacts/cli/linux-x64/` contains the self-contained CLI (including bundled JSON dependency), its PDB and external JSON license notice; dependency XML documentation may also appear. The notice is explicitly excluded from the single-file bundle so repeated publication preserves a readable redistribution notice. `make test` publishes twice to check that boundary. Build caches, private reference configuration and downloaded dependencies stay ignored. No game launch, personal installation/profile/settings update or personal save access is part of these commands. Installer tests operate on scratch targets and synthetic save/settings sentinels only. These raw-output checks do not claim an installable M1 pass. Complete-package validation is separate:
+
+```sh
+RIMWORLD_DIR=/absolute/path/to/RimWorld \
+HARMONY_MOD_DIR=/absolute/path/to/Harmony make package
+make verify-package
+```
+
+`package` freshly audits and compiles the mod, publishes the CLI, then assembles only explicit redistributable inputs. It includes About/version/Harmony dependency metadata, dependency licenses (including pinned .NET runtime third-party notices), usage and an ownership/hash manifest. Existing package output is refused, never overwritten. `verify-package` independently checks the entire directory against fixed paths/modes and trusted input hashes, rejects links/traversal/extra files and installed-reference hashes, and does not trust the manifest to authorize new files. See [package layout, explicit-target install/removal and recovery](package.md); packaging itself performs no install or Mono/game execution. Because package verification compares documentation and binaries with current trusted inputs, changing packaged docs or rebuilding inputs requires a fresh package. An older package is not evidence for the changed source.

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rim-pilot.invalid/protocol/discovery-v1.schema.json",
+  "title": "Private session discovery descriptor v1",
+  "description": "Private record only, maximum 1024 UTF-8 bytes before parsing. Filename must equal session + .json. Strict JSON grammar and native filesystem checks apply separately.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "session", "host", "port", "token"],
+  "properties": {
+    "v": {"type": "integer", "const": 1},
+    "session": {"type": "string", "maxLength": 34, "pattern": "^s_[0-9a-f]{32}$"},
+    "host": {"type": "string", "const": "127.0.0.1"},
+    "port": {"type": "integer", "minimum": 1, "maximum": 65535},
+    "token": {"type": "string", "maxLength": 64, "pattern": "^[0-9a-f]{64}$", "writeOnly": true}
+  }
+}
