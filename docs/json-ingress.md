@@ -1,6 +1,6 @@
 # JSON dependency and ingress boundary
 
-[Wire v1](../protocol/wire-v1.md) defines executable envelope/authentication/framing/DTO contracts. [Bounded transport](transport.md) and [bootstrap CLI routes](bootstrap-commands.md) now use them; baseline observations remain unavailable. Both endpoint projects and the asset-free test executable link the same `shared/Json/*.cs` and `shared/Protocol/*.cs`. Transport calls `StrictJson.Parse` through the concrete request reader before mapping any request, including authentication. Do not introduce a second parser with different acceptance rules.
+[Wire v1](../protocol/wire-v1.md) defines executable envelope/authentication/framing/DTO contracts. [Bounded transport](transport.md) and [bootstrap CLI routes](bootstrap-commands.md) now use them; [typed observations](observation-commands.md) use the same boundary, with real-game acceptance still unverified. Both endpoint projects and the asset-free test executable link the same `shared/Json/*.cs` and `shared/Protocol/*.cs`. Transport calls `StrictJson.Parse` through the concrete request reader before mapping any request, including authentication. Do not introduce a second parser with different acceptance rules.
 
 ## Pinned redistributable candidate
 

@@ -78,6 +78,15 @@ internal static class ObservationSafetyTests
             Test("release rechecks readiness/cancellation " + refusal, () => Reject(() => stamp.CheckRelease(scope, 3, refusal), refusal));
         Test("dev on then off during encode invalidates cached capture", () => Reject(() => stamp.CheckRelease(scope, 5, null), WireError.NotReady));
         Test("scope changes after encode invalidate capture", () => Reject(() => stamp.CheckRelease(replacement, 3, null), WireError.StaleScope));
+        Test("map-view proof cannot authorize menu capture", () =>
+        {
+            var menu = new Scope(Ids.New("s"), Ids.New("r"));
+            Reject(() => CompletedRenderStamp.Complete(new CaptureRequestStamp(menu, 3, 20),
+                new RenderEvidence(menu, 3, 21, true, false, true), menu, 3, null), WireError.NotReady);
+        });
+        Test("weaker map-view proof still requires completion", () => Reject(() =>
+            CompletedRenderStamp.Complete(request, new RenderEvidence(scope, 3, 21, false, false, true),
+                scope, 3, null), WireError.NotReady));
         Test("invalid capture evidence cannot be constructed", () =>
         {
             Reject(() => new CaptureRequestStamp(scope, 0, 20), WireError.InvalidRequest);

@@ -1,11 +1,20 @@
 {
-  "note": "Normative finite safety baseline, not runtime inspection or universal mod-debug detection. Missing/unreadable audit fails closed. Static named reads only; never arbitrary getters/reflection.",
+  "note": "Finite installed-source safety baseline, not universal mod-debug detection. Missing/unreadable audit fails closed. Static named reads only; no arbitrary getters/reflection. Two private health fields use exact metadata binding to cached read delegates, never reflection observation.",
+  "auditedGameVersion": "1.6.4871 rev600",
+  "limits": { "windows": 64, "staticReads": 256 },
   "knownDeveloperPanelTypes": [
+    "LudeonTK.Window_Dev",
     "LudeonTK.Dialog_Debug",
     "LudeonTK.EditWindow_DebugInspector",
     "LudeonTK.EditWindow_TweakValues",
     "LudeonTK.EditWindow_Log",
-    "Verse.Dialog_DevPalette"
+    "LudeonTK.Dialog_DevPalette",
+    "Verse.Dialog_DebugSetSeverity",
+    "Verse.Dialog_DebugSetHediffRemaining",
+    "Verse.Dialog_PawnTableTest",
+    "RimWorld.Dialog_DebugRenderTree",
+    "Verse.Dialog_CameraConfig",
+    "Verse.Dialog_CameraConfigList"
   ],
   "normalStaticBooleanValues": {
     "Verse.DebugSettings": {
@@ -14,7 +23,47 @@
       "showHiddenPawns": false,
       "showHiddenInfo": false,
       "showLocomotionUrgency": false,
-      "searchIgnoresRestrictions": false
+      "searchIgnoresRestrictions": false,
+      "enableDamage": true,
+      "enablePlayerDamage": true,
+      "enableRandomMentalStates": true,
+      "enableStoryteller": true,
+      "enableRandomDiseases": true,
+      "enableTranslationWindowInEnglish": false,
+      "pauseOnError": false,
+      "noAnimals": false,
+      "unlimitedPower": false,
+      "pathThroughWalls": false,
+      "instantRecruit": false,
+      "alwaysSocialFight": false,
+      "alwaysDoLovin": false,
+      "detectRegionListersBugs": false,
+      "instantVisitorsGift": false,
+      "lowFPS": false,
+      "allowUndraftedMechOrders": false,
+      "editableGlowerColors": false,
+      "anomalyDarkeningFX": true,
+      "fastResearch": false,
+      "fastLearning": false,
+      "fastEcology": false,
+      "fastEcologyRegrowRateOnly": false,
+      "fastCrafting": false,
+      "fastCaravans": false,
+      "fastMapUnpollution": false,
+      "activateAllBuildingDemands": false,
+      "activateAllIdeoRoles": false,
+      "playRitualAmbience": true,
+      "simulateUsingSteamDeck": false,
+      "logRaidInfo": false,
+      "logTranslationLookupErrors": false,
+      "logPsychicRitualTransitions": false,
+      "fastMonolithRespawn": false,
+      "alwaysRareCatches": false,
+      "alwaysNegativeCatches": false,
+      "logMismatchedLayoutFactions": false,
+      "loopGravshipCutscene": false,
+      "skipGravshipTileSelection": false,
+      "ignoreGravshipRange": false
     },
     "Verse.DebugViewSettings": {
       "drawFog": true,
@@ -130,7 +179,37 @@
       "showArchitectMenuOrder": false,
       "showTpsCounter": false,
       "showFpsCounter": false,
-      "showMemoryInfo": false
+      "showMemoryInfo": false,
+      "singleThreadedDrawing": false,
+      "logIncapChance": false,
+      "logInput": false,
+      "logApparelGeneration": false,
+      "logLordToilTransitions": false,
+      "logGrammarResolution": false,
+      "logCombatLogMouseover": false,
+      "logCauseOfDeath": false,
+      "logMapLoad": false,
+      "logTutor": false,
+      "logSignals": false,
+      "logWorldPawnGC": false,
+      "logTaleRecording": false,
+      "logHourlyScreenshot": false,
+      "logFilthSummary": false,
+      "logCarriedBetweenJobs": false,
+      "logComplexGenPoints": false,
+      "saveGravshipRenders": false,
+      "neverForceNormalSpeed": false
+    },
+    "RimWorld.HealthCardUtility": {
+      "showAllHediffs": false,
+      "showHediffsDebugInfo": false
+    },
+    "Verse.DebugGenerationSettings": {
+      "prefabCopyTerrain": false,
+      "prefabCopyAllThings": false
     }
+  },
+  "normalStaticNullFields": {
+    "LudeonTK.DebugTools": ["curTool", "curMeasureTool"]
   }
 }

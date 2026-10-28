@@ -47,11 +47,14 @@ namespace RimPilot.Protocol
         internal long Frame { get; }
         internal bool Completed { get; }
         internal bool WholeFrameSafe { get; }
-        internal RenderEvidence(Scope scope, long safetyEpoch, long frame, bool completed, bool wholeFrameSafe)
+        // Approved weaker map-view proof; never describes complete primary-color replacement.
+        internal bool MapViewSafe { get; }
+        internal RenderEvidence(Scope scope, long safetyEpoch, long frame, bool completed, bool wholeFrameSafe,
+            bool mapViewSafe = false)
         {
             if (safetyEpoch < 1 || frame < 0) throw new WireException(WireError.InvalidRequest);
             Scope = scope; SafetyEpoch = safetyEpoch; Frame = frame;
-            Completed = completed; WholeFrameSafe = wholeFrameSafe;
+            Completed = completed; WholeFrameSafe = wholeFrameSafe; MapViewSafe = mapViewSafe;
         }
     }
 
@@ -72,7 +75,8 @@ namespace RimPilot.Protocol
         {
             Check(request.Scope, request.SafetyEpoch, currentScope, currentSafetyEpoch, currentReadiness);
             if (!request.Scope.Same(rendered.Scope)) throw new WireException(WireError.StaleScope);
-            if (rendered.SafetyEpoch != request.SafetyEpoch || !rendered.Completed || !rendered.WholeFrameSafe
+            if (rendered.SafetyEpoch != request.SafetyEpoch || !rendered.Completed
+                || !(rendered.WholeFrameSafe || rendered.MapViewSafe && rendered.Scope.Game != null)
                 || rendered.Frame <= request.AfterFrame) throw new WireException(WireError.NotReady);
             return new CompletedRenderStamp(rendered);
         }

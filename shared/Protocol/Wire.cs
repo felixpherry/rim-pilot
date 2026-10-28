@@ -32,6 +32,8 @@ namespace RimPilot.Protocol
         internal const int PendingRequests = 16;
         internal const int ReadsPerUpdate = 4;
         internal const int TrackedMaps = 128;
+        // Eligible-only pawn/thing references per generation: four full retained snapshots.
+        internal const int TrackedEntities = Snapshots * SnapshotItems;
         internal const int RequestsPerSecond = 8;
         internal const int RequestBurst = 16;
         internal const int AuthTimeoutMs = 2000;
@@ -47,6 +49,11 @@ namespace RimPilot.Protocol
         internal const int ScanCandidates = 16384;
         internal const int CandidatesPerUpdate = 128;
         internal const int WorkPerUpdateMs = 2;
+        // Session-wide producer ownership. Retained snapshots are budgeted separately.
+        internal const int ActiveReads = 4;
+        internal const int NestedFieldsPerUpdate = 1024;
+        internal const int NestedFieldsPerRead = 65536;
+        internal const int ActiveWorkBytes = SnapshotBytes;
         internal const int EventItems = 256;
         internal const int EventBytes = 262144;
         internal const int EventCursors = 128;

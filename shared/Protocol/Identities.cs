@@ -76,7 +76,8 @@ namespace RimPilot.Protocol
     internal static class Readiness
     {
         // All booleans sampled on game thread. Long-event input means AnyEventNowOrWaiting,
-        // NOT ShouldWaitForEvent. Root.Update postfix is inside derived Root_Play.Update.
+        // NOT ShouldWaitForEvent. Base Root.Update postfix precedes derived play updates;
+        // product samples after the complete derived Update, not render completion.
         internal static WireError? Check(bool anyEventNowOrWaiting, bool validRoot, bool transitioning,
             bool gameRequired, bool validGame, bool mapRequired, bool validMap, bool developerUnsafe)
         {

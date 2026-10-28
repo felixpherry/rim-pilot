@@ -17,6 +17,7 @@ namespace RimPilot.Protocol
     {
         internal Action? TestReadable;
         internal void TestCheck() => Check(null);
+        internal bool TestReceiving { get { lock (gate) return receiving; } }
         partial void ObserveReadable() { TestReadable?.Invoke(); }
     }
 
@@ -126,6 +127,43 @@ internal static class TransportTests
                 await Write(peer, method == "auth" ? f.AuthJson() : RequestJson(method));
                 string expected = method == "auth" ? "invalid_request" : method == "unknown" || method == "input.click" || method == "reflection.get" ? "unsupported_method" : "forbidden_method";
                 Equal(expected, Error(await Read(peer))); True(f.Transport.Pending.Count == 0); await Closed(peer);
+            });
+        foreach (string method in new[] { "click", "key", "text", "scroll", "drag", "pause", "select", "camera",
+            "save", "load", "debug", "eval", "action", "grant", "reflect" })
+            Test("read-only denial recovers without latent dispatch: explicit " + method, async () =>
+            {
+                using var f = new Fixture();
+                JObject request = RequestJson(method, "denial");
+                request["params"] = new JObject { ["private-marker"] = f.Descriptor.Token,
+                    ["target"] = "private-target", ["value"] = new JObject { ["method"] = "health" } };
+                await DeniedThenHealthy(f, request, WireError.ForbiddenMethod);
+            });
+        foreach (string method in new[] { "input.click", "ui.click", "pawn.draft", "game.pause", "save.load",
+            "debug.eval", "reflection.get", "GetType", "invoke", "set", "camera.move", "grant.create",
+            "Click", "ACTION", " pause", "pause ", "pause\u0000", "pa\u200buse", "\uff50ause", "" })
+            Test("read-only denial recovers without latent dispatch: alias " + method, async () =>
+            {
+                using var f = new Fixture();
+                JObject request = RequestJson(method, "denial");
+                request["params"] = new JObject { ["private-marker"] = f.Descriptor.Token };
+                await DeniedThenHealthy(f, request, WireError.UnsupportedMethod);
+            });
+        foreach (string method in new[] { "health", "capabilities", "summary", "pawns.list", "pawn.get",
+            "things.list", "resources", "ui", "screenshot", "events.read" })
+            Test("read-only denial recovers without latent dispatch: smuggled action in " + method, async () =>
+            {
+                using var f = new Fixture();
+                JObject request = RequestJson(method, "denial");
+                var args = (JObject)request["params"]!;
+                if (method != "health" && method != "capabilities")
+                    args["scope"] = new Scope(f.Descriptor.Session, Ids.New("r"), Ids.New("g"), Ids.New("m")).Json();
+                if (method == "pawns.list" || method == "things.list" || method == "events.read") args["limit"] = 1;
+                if (method == "pawn.get") args["pawn"] = Ids.New("p");
+                // First prove the base read is well-formed; a missing required field must not
+                // accidentally make the subsequent action-smuggling assertion pass.
+                Request.Read(WireJson.Encode(request));
+                args["action"] = new JObject { ["method"] = "pause", ["private-marker"] = f.Descriptor.Token };
+                await DeniedThenHealthy(f, request, WireError.InvalidRequest);
             });
         foreach (string method in new[] { "health", "capabilities" })
             Test("bootstrap extra params never dispatch: " + method, async () =>
@@ -527,6 +565,40 @@ internal static class TransportTests
         internal async Task Auth(TcpClient peer)
         { await Write(peer, AuthJson()); ResponseContracts.Read(await Read(peer), ReadMethod.Auth, "a"); }
         public void Dispose() { Transport.Dispose(); Directory.Delete(Root, true); }
+    }
+    // Exercises the actual listener/auth/parser/queue boundary, not Request.Read alone.
+    // Closed denial peer + zero active sockets fences its worker before the valid request;
+    // no sleeps/retries or observation producers can hide a wrongly enqueued intent.
+    private static async Task DeniedThenHealthy(Fixture f, JObject request, WireError expected)
+    {
+        using (var denied = await f.Connect())
+        {
+            await f.Auth(denied);
+            await Write(denied, request);
+            Task<byte[]> reply = Read(denied);
+            await Until(() => reply.IsCompleted || f.Transport.Pending.Count != 0, "denial or forbidden dispatch");
+            Equal(0, f.Transport.Pending.Count);
+            string response = Encoding.UTF8.GetString(await reply);
+            Equal(Responses.Error(null, expected).ToString(Newtonsoft.Json.Formatting.None), response);
+            True(!response.Contains(f.Descriptor.Token, StringComparison.Ordinal)
+                && !response.Contains("private-marker", StringComparison.Ordinal)
+                && !response.Contains("private-target", StringComparison.Ordinal));
+            Equal(0, f.Transport.Pending.Count);
+            await Closed(denied);
+        }
+        await Until(() => f.Transport.ActiveConnections == 0, "denied peer worker released");
+        True(!f.Transport.Pending.TryTake(out _));
+        using var healthy = await f.Connect();
+        await f.Auth(healthy);
+        await Write(healthy, RequestJson("health", "recovery"));
+        PendingRead work = await Take(f.Transport);
+        Equal("recovery", work.Request.Id);
+        Equal(ReadMethod.Health, work.Request.Method);
+        True(work.TryComplete(new JObject { ["state"] = "bootstrap" }));
+        ResponseContracts.Read(await Read(healthy), ReadMethod.Health, "recovery");
+        healthy.Dispose();
+        await Until(() => f.Transport.ActiveConnections == 0 && f.Transport.Pending.Count == 0, "healthy peer released");
+        True(!f.Transport.Pending.TryTake(out _));
     }
     private sealed class SocketPair : IDisposable
     {

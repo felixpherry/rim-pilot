@@ -1,6 +1,6 @@
 # Bounded loopback transport component
 
-`shared/Protocol/LoopbackTransport.cs` is a game-independent transport owner. The mod's [process lifecycle](mod-lifecycle.md) now starts it on one background owner after game-thread quitting registration. CLI session discovery authenticates exact endpoints. [Main-thread dispatch](read-dispatch.md) produces authenticated [health/capabilities](bootstrap-commands.md), but no baseline observation producer is enabled. Ordinary reads fail closed rather than return invented data. Host tests supply synthetic scheduling/game evidence; they do not establish Unity Mono or game behavior.
+`shared/Protocol/LoopbackTransport.cs` is a game-independent transport owner. The mod's [process lifecycle](mod-lifecycle.md) now starts it on one background owner after game-thread quitting registration. CLI session discovery authenticates exact endpoints. [Main-thread dispatch](read-dispatch.md) produces authenticated [health/capabilities](bootstrap-commands.md), and registered [observation producers](observation-commands.md). Ordinary reads require safety/eligibility admission and fail closed rather than return invented data. Host tests supply synthetic scheduling/game evidence; they do not establish Unity Mono or game behavior.
 
 ## Ownership and admission
 

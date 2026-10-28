@@ -132,8 +132,8 @@ class OperationInventoryTests(unittest.TestCase):
         candidates = {row[3][10:] for row in parsed if row[3].startswith("baseline: ")}
         self.assertEqual(candidates, {"summary", "health", "pawns.list", "pawn.get", "things.list",
                                       "resources", "ui", "events.read"})
-        for phrase in ["None exist yet", "Zero implemented runtime operation routes",
-                       "zero proven product screenshots", "no control route", "M1 cannot navigate",
+        for phrase in ["No operation row has that game evidence yet", "Zero game-proven operation rows",
+                       "zero game-proven product screenshots", "no control route", "M1 cannot navigate",
                        "not the final exhaustive M4 inventory", "Co-play is deferred to M3"]:
             self.assertIn(phrase, TEXT)
 

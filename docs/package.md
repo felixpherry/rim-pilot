@@ -6,11 +6,17 @@ must be explicit absolute paths, as for `make build-game`. No game is launched.
 An existing output path is refused, not overwritten; move or remove only your old
 ignored build artifact before building another package.
 
-This is a development artifact, not verified M1 acceptance. Health/capabilities
-exist; baseline JSON observations, events and screenshots remain unavailable and
-unverified. A separately authorized isolated full-profile Unity Mono menu run proved
-package installation and authenticated bootstrap commands, not general runtime
-compatibility or M1 acceptance; see [runtime evidence](../tests/coverage/session-adversarial.md#isolated-menu-runtime-proof).
+This is a development artifact, not verified M1 acceptance. It contains the
+authenticated bootstrap commands and the typed read-only observation commands
+(summary, own pawns, pawn detail, things, resources, UI, public events,
+screenshots); see [typed commands](observation-commands.md). Limited exact-release
+Unity Mono evidence exists on one copied fixture, summarized with its unmet items in
+the [phase-4 evidence summary](../tests/coverage/observation-adversarial.md#phase-4-real-game-evidence-summary):
+`things.list` and `resources` refuse `unavailable` on every loaded-map launch
+tested, natural public events and several budgets are unmet or unverified, and
+acceptance criteria 2, 3 and 5 remain unmet or unverified. Package verification
+and installer runs are host and filesystem checks, not runtime compatibility
+checks.
 
 ## Layout and dependency ownership
 
@@ -25,7 +31,7 @@ compatibility or M1 acceptance; see [runtime evidence](../tests/coverage/session
   license and third-party notices. Runtime version and notice hashes are pinned
   in `packaging/redistributables.json`; changing runtime requires reviewing both.
   These dependency notices do not grant a new license to project-owned code.
-- `docs/`: this document and current bootstrap CLI usage.
+- `docs/`: this document and current CLI usage (`docs/usage.md`).
 - `ownership.json`: versioned, exact file inventory with logical owner/component,
   SHA-256, byte length, Unix mode, and explicit owned directories. All entries
   belong to this package; dependency authors retain their copyrights/licenses.
@@ -58,7 +64,7 @@ its trust anchors. No archives are extracted by these commands.
 ## Current use and installation boundary
 
 Run `cli/rim-pilot sessions`, then `cli/rim-pilot health --session SESSION` or
-`cli/rim-pilot capabilities --session SESSION`; see `docs/usage.md` in the package.
+`cli/rim-pilot capabilities --session SESSION`, then the typed observation commands; see `docs/usage.md` in the package.
 Credentials remain private discovery data, not command-line arguments.
 
 ## Explicit-target mod install, reinstall and removal

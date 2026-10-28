@@ -11,6 +11,9 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parent.parent
 COMMANDS = runpy.run_path(str(ROOT / "scripts/project.py"), run_name="command_test")
+USAGE = ("rim-pilot: usage: {sessions|health|capabilities|summary|pawns.list|pawn.get|things.list|resources|ui|events.read|screenshot} "
+         "[--session SESSION] [--root ROOT --game GAME --map MAP] [--pawn PAWN] "
+         "[--limit 1..64 --cursor CURSOR] [--output LOCAL_PATH]\n")
 
 
 class ProjectCommandTests(unittest.TestCase):
@@ -122,23 +125,23 @@ class ProjectCommandTests(unittest.TestCase):
             self.assertEqual(kwargs["env"]["DOTNET_MULTILEVEL_LOOKUP"], "0")
             self.assertEqual(kwargs["timeout"], 30)
             if len(command) == 1:
-                return subprocess.CompletedProcess(command, 64, "",
-                    "rim-pilot: usage: {sessions|health|capabilities} [--session SESSION]\n")
+                return subprocess.CompletedProcess(command, 64, "", USAGE)
             output = '{"v":1,"sessions":[]}\n' if command[1] == "sessions" else ""
             return subprocess.CompletedProcess(command, 69, output, "rim-pilot: no_live_session.\n")
 
         with patch.dict(smoke.__globals__, {"ROOT": self.root}), patch("subprocess.run", side_effect=execute):
             smoke()
         self.assertEqual([command[1:] for command, _ in calls],
-                         [[], ["sessions"], ["health"], ["capabilities"]])
+                         [[], ["sessions"], ["health"], ["capabilities"], ["summary"], ["ui"],
+                          ["events.read"], ["screenshot", "--output", "capture.png"]])
         self.assertFalse(any((self.root / ".local").iterdir()))
 
     def test_published_smoke_rejects_obsolete_or_invalid_usage_results(self):
         smoke = COMMANDS["smoke_cli"]
         for result in (subprocess.CompletedProcess([], 64, "", "not implemented\n"),
+                       subprocess.CompletedProcess([], 64, "", "rim-pilot: usage: {sessions|health|capabilities} [--session SESSION]\n"),
                        subprocess.CompletedProcess([], 0, "", ""),
-                       subprocess.CompletedProcess([], 64, "unexpected output",
-                           "rim-pilot: usage: {sessions|health|capabilities} [--session SESSION]\n")):
+                       subprocess.CompletedProcess([], 64, "unexpected output", USAGE)):
             with self.subTest(result=result), patch.dict(smoke.__globals__, {"ROOT": self.root}), \
                     patch("subprocess.run", return_value=result):
                 with self.assertRaisesRegex(RuntimeError, "smoke failed"):
@@ -146,8 +149,7 @@ class ProjectCommandTests(unittest.TestCase):
 
     def test_published_smoke_rejects_nonempty_or_wrong_registry_result(self):
         smoke = COMMANDS["smoke_cli"]
-        usage = subprocess.CompletedProcess([], 64, "",
-            "rim-pilot: usage: {sessions|health|capabilities} [--session SESSION]\n")
+        usage = subprocess.CompletedProcess([], 64, "", USAGE)
         for result in (subprocess.CompletedProcess([], 0, '{"v":1,"sessions":[]}', ""),
                        subprocess.CompletedProcess([], 69, '{"v":1,"sessions":[{"status":"live"}]}',
                            "rim-pilot: no_live_session.\n"),

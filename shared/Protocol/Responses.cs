@@ -11,14 +11,18 @@ namespace RimPilot.Protocol
         internal string Name { get; }
         internal CapabilityState State { get; }
         internal string Schema { get; }
-        internal Capability(string name, CapabilityState state, string schema)
+        internal string? Reason { get; }
+        internal Capability(string name, CapabilityState state, string schema, string? reason = null)
         {
             Name = Text(name, 64); State = state; Schema = Text(schema, 64);
+            Reason = reason == null ? null : Text(reason, 256);
         }
         internal JObject Json()
         {
             string state = State == CapabilityState.Available ? "available" : State == CapabilityState.Unsupported ? "unsupported" : "unverified";
-            return new JObject { ["name"] = Name, ["state"] = state, ["schema"] = Schema };
+            var result = new JObject { ["name"] = Name, ["state"] = state, ["schema"] = Schema };
+            if (Reason != null) result["reason"] = Reason;
+            return result;
         }
         internal static string Text(string value, int limit)
         {
@@ -67,26 +71,40 @@ namespace RimPilot.Protocol
                 default: throw new ArgumentOutOfRangeException(nameof(code));
             }
         }
-        // Bootstrap readiness is scheduling readiness only, NOT audited observation safety.
-        // No scope or baseline data is released before phase-3 adapters exist.
-        internal static JObject Health(bool ready) => new JObject { ["state"] = ready ? "ready" : "loading" };
-
-        internal static JObject BootstrapCapabilities() => Capabilities(new[]
+        // Bootstrap readiness is scheduling readiness only. The optional root/game scope (never a
+        // map) is the cold-start handle for summary, supplied only while observation is authorized.
+        internal static JObject Health(bool ready, Scope? scope = null)
         {
-            new Capability("auth", CapabilityState.Available, "auth-v1"),
-            new Capability("health", CapabilityState.Available, "health-v1"),
-            new Capability("capabilities", CapabilityState.Available, "capabilities-v1"),
-            new Capability("summary", CapabilityState.Unverified, "summary-v1"),
-            new Capability("pawns.list", CapabilityState.Unverified, "pawns-v1"),
-            new Capability("pawn.get", CapabilityState.Unverified, "pawn-v1"),
-            new Capability("things.list", CapabilityState.Unverified, "things-v1"),
-            new Capability("resources", CapabilityState.Unverified, "resources-v1"),
-            new Capability("ui", CapabilityState.Unverified, "ui-v1"),
-            new Capability("screenshot", CapabilityState.Unverified, "screenshot-v1"),
-            new Capability("events.read", CapabilityState.Unverified, "events-v1"),
-            new Capability("ui.rendered_controls", CapabilityState.Unsupported, "none"),
-            new Capability("specialist.structured", CapabilityState.Unsupported, "none")
-        });
+            if (scope != null && (!ready || scope.Map != null)) throw new ArgumentException("Invalid health scope.");
+            var result = new JObject { ["state"] = ready ? "ready" : "loading" };
+            if (scope != null) result["scope"] = scope.Json();
+            return result;
+        }
+
+        // Only routes with a registered audited producer are available; the rest stay unverified.
+        internal static JObject BootstrapCapabilities(Func<ReadMethod, bool>? available = null)
+        {
+            CapabilityState Route(ReadMethod method) =>
+                available != null && available(method) ? CapabilityState.Available : CapabilityState.Unverified;
+            return Capabilities(new[]
+            {
+                new Capability("auth", CapabilityState.Available, "auth-v1"),
+                new Capability("health", CapabilityState.Available, "health-v1"),
+                new Capability("capabilities", CapabilityState.Available, "capabilities-v1"),
+                new Capability("summary", Route(ReadMethod.Summary), "summary-v1"),
+                new Capability("pawns.list", Route(ReadMethod.Pawns), "pawns-v1"),
+                new Capability("pawn.get", Route(ReadMethod.Pawn), "pawn-v1"),
+                new Capability("things.list", Route(ReadMethod.Things), "things-v1"),
+                new Capability("resources", Route(ReadMethod.Resources), "resources-v1"),
+                new Capability("ui", Route(ReadMethod.Ui), "ui-v1"),
+                new Capability("screenshot", Route(ReadMethod.Screenshot), "screenshot-v1"),
+                new Capability("events.read", Route(ReadMethod.Events), "events-v1"),
+                new Capability("screenshot.map_view", Route(ReadMethod.Screenshot), "screenshot-v1",
+                    "Paused/live displayed-frame capture: newer frame, passed GPU fence, continuous safety/scope/size/scale checks. Primary camera clears depth only; no whole-primary-pixel replacement guarantee (menu only)."),
+                new Capability("ui.rendered_controls", CapabilityState.Unsupported, "none"),
+                new Capability("specialist.structured", CapabilityState.Unsupported, "none")
+            });
+        }
 
         internal static JObject Capabilities(IReadOnlyList<Capability> capabilities)
         {
@@ -127,20 +145,6 @@ namespace RimPilot.Protocol
             return new JObject { ["scope"] = completed.Scope.Json(), ["capture"] = completed.Capture, ["frame"] = completed.Frame,
                 ["phase"] = "completed_render", ["width"] = width, ["height"] = height, ["scale"] = scale,
                 ["encoding"] = "png_base64_chunks", ["bytes"] = png.Length, ["chunks"] = chunks };
-        }
-    }
-
-    // Private traversal accounting only. No raw counters/positions are wire fields or cursor material.
-    // An adapter must also enforce global wall time, cancellation and main-thread slice deadline.
-    internal sealed class ScanBudget
-    {
-        private int scanned;
-        private int slice;
-        internal void BeginUpdate() { slice = 0; }
-        internal bool TryExamine()
-        {
-            if (slice == WireLimits.CandidatesPerUpdate || scanned == WireLimits.ScanCandidates) return false;
-            slice++; scanned++; return true;
         }
     }
 }

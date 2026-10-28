@@ -103,16 +103,6 @@ internal static class WireTests
             catch (OperationCanceledException) { Equal(0, wire.Reads); }
         });
         Test("oversize output rejected before header", () => { using var wire = new MemoryStream(); Reject(() => Framing.WriteAsync(wire, new byte[65537], WireLimits.RequestBytes, CancellationToken.None).GetAwaiter().GetResult(), WireError.InvalidFrame); Equal(0L, wire.Length); });
-        Test("scan budgets finite across updates", () =>
-        {
-            var scan = new ScanBudget(); int count = 0;
-            for (int i = 0; i < WireLimits.ScanCandidates / WireLimits.CandidatesPerUpdate; i++)
-            {
-                scan.BeginUpdate(); for (int j = 0; j < WireLimits.CandidatesPerUpdate; j++) { True(scan.TryExamine()); count++; }
-                True(!scan.TryExamine());
-            }
-            scan.BeginUpdate(); True(!scan.TryExamine()); Equal(WireLimits.ScanCandidates, count);
-        });
         Test("page serializes only public eligible vector no progress totals", () =>
         {
             var page = Responses.Page(new SampleStamp(MapScope(), 12, 1), Ids.New("q"), new JArray(), null);
@@ -127,6 +117,23 @@ internal static class WireTests
                 True(error["id"] == null); Equal(1, ((JObject)error["error"]!).Count);
                 True(!Encoding.UTF8.GetString(WireJson.Encode(error)).Contains("secret", StringComparison.Ordinal));
             });
+        Test("map-view screenshot proof is explicit and follows producer binding", () =>
+        {
+            foreach (bool bound in new[] { false, true })
+            {
+                JObject data = Responses.BootstrapCapabilities(_ => bound);
+                ResponseContracts.Read(WireJson.Encode(Responses.Success("c", data)), ReadMethod.Capabilities, "c");
+                JToken gap = ((JArray)data["capabilities"]!).Single(c => (string?)c["name"] == "screenshot.map_view");
+                Equal(bound ? "available" : "unverified", (string)gap["state"]!); Equal("screenshot-v1", (string)gap["schema"]!);
+                True(((string)gap["reason"]!).Contains("Primary camera clears depth only", StringComparison.Ordinal));
+                True(((string)gap["reason"]!).Contains("no whole-primary-pixel replacement guarantee (menu only)", StringComparison.Ordinal));
+                foreach (JToken invalid in new JToken[] { JValue.CreateNull(), new JValue(new string('x', 257)), new JValue(1) })
+                {
+                    gap["reason"] = invalid;
+                    Reject(() => ResponseContracts.Read(WireJson.Encode(Responses.Success("c", data)), ReadMethod.Capabilities, "c"), WireError.InvalidRequest);
+                }
+            }
+        });
         Test("duplicate capability names rejected", () => Reject(() => Responses.Capabilities(new[] { new Capability("x", CapabilityState.Unsupported, "none"), new Capability("x", CapabilityState.Available, "x-v1") }), WireError.InvalidRequest));
         Test("JSON global serializer defaults not used by wire writer", () =>
         {

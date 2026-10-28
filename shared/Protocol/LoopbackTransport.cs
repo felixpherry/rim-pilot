@@ -136,6 +136,12 @@ namespace RimPilot.Protocol
         // while the watchdog checks EOF during queued/executing work or response publication.
         internal void BeginReceive() { lock (gate) { EnsureLive(); receiving = true; } }
         internal void EndReceive() { lock (gate) receiving = false; }
+        internal async Task<byte[]> ReadFrameAsync(Stream stream, int ceiling)
+        {
+            BeginReceive();
+            try { return await Framing.ReadAsync(stream, ceiling, Cancellation).ConfigureAwait(false); }
+            finally { EndReceive(); }
+        }
         private void Check(object? unused)
         {
             lock (gate)

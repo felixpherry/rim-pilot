@@ -53,6 +53,21 @@ internal static class SessionDiscoveryTests
             Equal(server.Session, peer.Session); Equal(1, server.ActiveConnections);
             await Reject(SessionError.SessionUnavailable, () => discovery.ConnectAsync(server.Session));
         });
+        Test("CLI pending response owns receive guard against watchdog EOF race", async () =>
+        {
+            using var f = new Fixture(); using var server = LoopbackTransport.Start(f.Root);
+            using var discovery = f.Scan(); using var peer = await discovery.ConnectAsync(server.Session);
+            Task<JObject> response = peer.ReadBootstrapAsync(ReadMethod.Health);
+            var watch = Stopwatch.StartNew(); PendingRead? work = null;
+            while (!server.Pending.TryTake(out work)) { True(watch.ElapsedMilliseconds < 1000); await Task.Delay(2); }
+            // Same socket, real CLI exchange, blocked waiting for a response. EOF polling
+            // must not race its receive; the absolute deadline remains active throughout.
+            True(peer.Lifetime.TestReceiving);
+            peer.Lifetime.TestCheck(); True(!peer.Lifetime.Cancellation.IsCancellationRequested);
+            True(work!.TryComplete(new JObject { ["state"] = "bootstrap" }));
+            Equal("bootstrap", (string)(await response)["data"]!["state"]!);
+            True(!peer.Lifetime.TestReceiving);
+        });
         Test("two live instances require explicit selection, no first-match", async () =>
         {
             using var f = new Fixture(); using var a = LoopbackTransport.Start(f.Root); using var b = LoopbackTransport.Start(f.Root);
@@ -135,6 +150,37 @@ internal static class SessionDiscoveryTests
                 True(watch.ElapsedMilliseconds < 1500); await serve;
                 True(File.Exists(f.PathFor(descriptor.Session))); True(!listener.Poll(0, SelectMode.SelectRead));
             });
+        // P4-19a-R1: real loading windows showed an events.read exit 69 with no reply and fixed session_unavailable at
+        // ~1.4 s. A late authentication reply (beyond the 1-s discovery probe allowance) must fail closed exactly so.
+        foreach (string late in new[] { "late auth reply, silent", "late auth reply, then valid" })
+            Test("observation command with " + late + " exceeds probe allowance: exit 69, no stdout, descriptor retained", async () =>
+            {
+                using var f = new Fixture(); using var listener = Listen();
+                DiscoveryDescriptor descriptor = f.Add(((IPEndPoint)listener.LocalEndPoint!).Port);
+                Task serve = Task.Run(async () =>
+                {
+                    using Socket socket = await listener.AcceptAsync(); using var stream = new NetworkStream(socket, false);
+                    await Framing.ReadAsync(stream, WireLimits.RequestBytes, CancellationToken.None);
+                    await Task.Delay(DiscoveryLimits.ProbeTimeoutMs + 300);
+                    if (late.EndsWith("valid", StringComparison.Ordinal))
+                    {
+                        try
+                        {
+                            await Framing.WriteAsync(stream, WireJson.EncodeResponse("discovery", ReadMethod.Auth,
+                                new JObject { ["session"] = descriptor.Session, ["protocol"] = 1 }), WireLimits.ResponseBytes, CancellationToken.None);
+                        }
+                        catch (IOException) { }
+                    }
+                });
+                var watch = Stopwatch.StartNew();
+                var result = await f.Command("events.read", "--session", descriptor.Session, "--root", Ids.New("r"), "--game", Ids.New("g"),
+                    "--cursor", Ids.New("e"), "--limit", "8");
+                long elapsed = watch.ElapsedMilliseconds; await serve;
+                Equal(69, result.Exit); Equal("", result.Output); Equal("rim-pilot: session_unavailable.\n", result.Error);
+                True(elapsed >= DiscoveryLimits.ProbeTimeoutMs - 50 && elapsed < WireLimits.RequestTimeoutMs);
+                True(!result.Error.Contains(descriptor.Token, StringComparison.Ordinal));
+                True(File.Exists(f.PathFor(descriptor.Session)));
+            });
         Test("port reuse by different authenticated instance never retargets", async () =>
         {
             using var f = new Fixture(); using var server = LoopbackTransport.Start(f.Root);
@@ -193,11 +239,12 @@ internal static class SessionDiscoveryTests
             using var discovery = f.Scan(); Equal(0, ((JArray)(await discovery.ListAsync())["sessions"]!).Count);
             Equal("uncertain", File.ReadAllText(f.Registry + "/.private-workspace/record"));
         });
-        foreach (string[] args in new[] { Array.Empty<string>(), new[] { "summary" }, new[] { "sessions", "--token", "secret" }, new[] { "sessions", "--session" } })
+        foreach (string[] args in new[] { Array.Empty<string>(), new[] { "unsupported" }, new[] { "sessions", "--token", "secret" }, new[] { "sessions", "--session" } })
             Test("strict CLI usage, no secret arguments echoed: " + args.Length, async () =>
             {
                 using var f = new Fixture(); var result = await f.Command(args);
-                Equal(64, result.Exit); Equal("", result.Output); Equal("rim-pilot: usage: {sessions|health|capabilities} [--session SESSION]\n", result.Error);
+                Equal(64, result.Exit); Equal("", result.Output); True(result.Error.StartsWith("rim-pilot: usage: ", StringComparison.Ordinal));
+                True(!result.Error.Contains("secret", StringComparison.Ordinal));
             });
         foreach (string state in new[] { "menu", "playing", "loading" })
             Test("CLI health/capabilities against real dispatcher: " + state, async () =>

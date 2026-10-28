@@ -85,10 +85,14 @@ def smoke_cli():
         env.update({"DOTNET_ROOT": temporary, "DOTNET_ROOT_X64": temporary,
                     "DOTNET_MULTILEVEL_LOOKUP": "0", "DOTNET_BUNDLE_EXTRACT_BASE_DIR": temporary,
                     "PATH": temporary, "HOME": str(home), "XDG_RUNTIME_DIR": str(runtime)})
-        cases = (([], 64, "", "usage: {sessions|health|capabilities} [--session SESSION]"),
+        cases = (([], 64, "", "usage: {sessions|health|capabilities|summary|pawns.list|pawn.get|things.list|resources|ui|events.read|screenshot} [--session SESSION] [--root ROOT --game GAME --map MAP] [--pawn PAWN] [--limit 1..64 --cursor CURSOR] [--output LOCAL_PATH]"),
                  (["sessions"], 69, {"v": 1, "sessions": []}, "no_live_session."),
                  (["health"], 69, "", "no_live_session."),
-                 (["capabilities"], 69, "", "no_live_session."))
+                 (["capabilities"], 69, "", "no_live_session."),
+                 (["summary"], 69, "", "no_live_session."),
+                 (["ui"], 69, "", "no_live_session."),
+                 (["events.read"], 69, "", "no_live_session."),
+                 (["screenshot", "--output", "capture.png"], 69, "", "no_live_session."))
         for arguments, code, output, diagnostic in cases:
             result = subprocess.run([str(CLI_OUTPUT / "rim-pilot"), *arguments], cwd=temporary, env=env,
                                     capture_output=True, text=True, timeout=30)
@@ -98,7 +102,7 @@ def smoke_cli():
         registry = runtime / "rim-pilot/v1"
         if not registry.is_dir() or any(registry.iterdir()):
             raise RuntimeError("Self-contained CLI smoke did not use its empty private registry.")
-    print("Published CLI usage/sessions/health/capabilities ran SDK-free against scratch registry; no observation pass.")
+    print("Published CLI usage/bootstrap/observation refusals ran SDK-free against scratch registry; no observation pass.")
 
 
 def build_game():

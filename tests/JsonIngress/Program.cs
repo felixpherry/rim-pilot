@@ -22,9 +22,35 @@ internal static class Program
             Environment.Exit(NativeFilesystemTests.RunUmaskChild(args[1]));
             return;
         }
+        if (args.Length == 1 && args[0] == "wire")
+        {
+            Environment.Exit(WireTests.Run() == 0 ? 0 : 1);
+            return;
+        }
         if (args.Length >= 1 && args.Length <= 2 && args[0] == "transport")
         {
             Environment.Exit(TransportTests.Run(args.Length == 2 ? args[1] : null) == 0 ? 0 : 1);
+            return;
+        }
+        if (args.Length == 1 && args[0] == "observation-cli")
+        {
+            Environment.Exit(ObservationClientTests.Run() + SessionDiscoveryTests.Run() == 0 ? 0 : 1);
+            return;
+        }
+        if (args.Length == 1 && args[0] == "capture")
+        {
+            Environment.Exit(ScreenshotCaptureTests.Run() == 0 ? 0 : 1);
+            return;
+        }
+        if (args.Length == 1 && args[0] == "safety-sampler")
+        {
+            int errors = DeveloperSafetySamplerTests.Run() + ObservationEpochTests.Run() + RenderProvenanceTests.Run() + ScreenshotCaptureTests.Run() + ReadDispatcherTests.Run() + ProducerSchedulerTests.Run();
+            Environment.Exit(errors == 0 ? 0 : 1);
+            return;
+        }
+        if (args.Length == 1 && args[0] == "admission")
+        {
+            Environment.Exit(ProjectionAdmissionTests.Run() + TargetGateTests.Run() + SnapshotStoreTests.Run() + SummaryProjectionTests.Run() + PawnProjectionTests.Run() + ThingProjectionTests.Run() + UiProjectionTests.Run() + PublicEventRingTests.Run() + PublicEventWitnessTests.Run() + ObservationRegressionTests.Run() == 0 ? 0 : 1);
             return;
         }
         Test("same pinned net45 dependency under pure .NET tests (not Mono proof)", () =>
@@ -197,13 +223,13 @@ internal static class Program
         });
         Console.WriteLine($"JSON ingress: {passed} passed; {failed} failed. .NET tests only; Unity Mono loading deferred.");
         int wireFailed = WireTests.Run();
-        int safetyFailed = ObservationSafetyTests.Run();
+        int safetyFailed = ObservationSafetyTests.Run() + DeveloperSafetySamplerTests.Run() + ObservationEpochTests.Run() + RenderProvenanceTests.Run() + ScreenshotCaptureTests.Run() + ProjectionAdmissionTests.Run() + TargetGateTests.Run() + SnapshotStoreTests.Run() + SummaryProjectionTests.Run() + PawnProjectionTests.Run() + ThingProjectionTests.Run() + UiProjectionTests.Run() + PublicEventRingTests.Run() + PublicEventWitnessTests.Run() + ObservationRegressionTests.Run();
         int discoveryFailed = DiscoveryTests.Run();
         int nativeFailed = NativeFilesystemTests.Run();
         int transportFailed = TransportTests.Run();
-        int sessionsFailed = SessionDiscoveryTests.Run();
+        int sessionsFailed = SessionDiscoveryTests.Run() + ObservationClientTests.Run();
         int lifecycleFailed = ProcessLifecycleTests.Run();
-        int dispatcherFailed = ReadDispatcherTests.Run();
+        int dispatcherFailed = ReadDispatcherTests.Run() + ProducerSchedulerTests.Run();
         if (failed != 0 || wireFailed != 0 || safetyFailed != 0 || discoveryFailed != 0 || nativeFailed != 0 || transportFailed != 0 || sessionsFailed != 0 || lifecycleFailed != 0 || dispatcherFailed != 0) Environment.Exit(1);
     }
 

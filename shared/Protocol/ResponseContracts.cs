@@ -53,9 +53,10 @@ namespace RimPilot.Protocol
                     var names = new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
                     foreach (JToken item in JsonFields.Array(f.Required("capabilities"), 64))
                     {
-                        var c = new JsonFields(item, "name", "state", "schema");
+                        var c = new JsonFields(item, "name", "state", "schema", "reason");
                         if (!names.Add(c.String("name", 64))) Reject();
                         Choice(c.String("state", 16), "available", "unsupported", "unverified"); c.String("schema", 64);
+                        if (c.Has("reason")) c.String("reason", 256);
                     }
                     break;
                 case ReadMethod.Summary:

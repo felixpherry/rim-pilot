@@ -130,7 +130,7 @@ internal sealed class SessionDiscovery : IDisposable
             byte[] auth = WireJson.Encode(new JObject { ["v"] = WireLimits.Version, ["id"] = id,
                 ["method"] = "auth", ["params"] = new JObject { ["session"] = descriptor.Session, ["token"] = descriptor.Token } });
             await Framing.WriteAsync(stream, auth, WireLimits.RequestBytes, lifetime.Cancellation).ConfigureAwait(false);
-            byte[] bytes = await Framing.ReadAsync(stream, WireLimits.ResponseBytes, lifetime.Cancellation).ConfigureAwait(false);
+            byte[] bytes = await lifetime.ReadFrameAsync(stream, WireLimits.ResponseBytes).ConfigureAwait(false);
             lifetime.EnsureLive();
             JObject response = ResponseContracts.Read(bytes, ReadMethod.Auth, id);
             if ((bool)response["ok"]! != true || (string?)response["data"]?["session"] != descriptor.Session)
@@ -152,7 +152,7 @@ internal sealed class SessionDiscovery : IDisposable
     public void Dispose() { disposed = true; registry.Dispose(); }
 }
 
-// Single-owner connection for bootstrap commands. No credential exposed or stored here.
+// Single-owner exact-session connection. No credential exposed or stored here.
 internal sealed class AuthenticatedSession : IDisposable
 {
     private readonly Socket socket;
@@ -169,18 +169,54 @@ internal sealed class AuthenticatedSession : IDisposable
     }
     internal async Task<JObject> ReadBootstrapAsync(ReadMethod method)
     {
-        // No arbitrary method/params pass-through and no reconnect after probe/command failure.
         string name = method switch { ReadMethod.Health => "health", ReadMethod.Capabilities => "capabilities",
             _ => throw new SessionException(SessionError.SessionUnavailable) };
+        return await ExchangeAsync(method, name, new JObject(), null).ConfigureAwait(false);
+    }
+
+    internal async Task<JObject> ReadObservationAsync(ObservationCommand command)
+    {
+        Scope scope;
+        if (command.Root != null) scope = new Scope(Session, command.Root, command.Game, command.Map);
+        else
+        {
+            // Bootstrap on this SAME authenticated socket; never retry a stale explicit scope.
+            JObject health = await ReadBootstrapAsync(ReadMethod.Health).ConfigureAwait(false);
+            if (health["data"]?["scope"] is not JToken token)
+                throw new SessionException(SessionError.SessionUnavailable);
+            scope = Scope.Read(token);
+        }
+        JObject parameters = command.Parameters(scope);
+        return await ExchangeAsync(command.Method, command.Name, parameters, scope).ConfigureAwait(false);
+    }
+
+    private async Task<JObject> ExchangeAsync(ReadMethod method, string name, JObject parameters, Scope? expected)
+    {
         try
         {
             using NetworkStream stream = BeginRequest();
-            byte[] request = WireJson.Encode(new JObject { ["v"] = WireLimits.Version, ["id"] = name,
-                ["method"] = name, ["params"] = new JObject() });
+            string id = name.Replace('.', '_');
+            byte[] request = WireJson.Encode(new JObject { ["v"] = WireLimits.Version, ["id"] = id,
+                ["method"] = name, ["params"] = parameters });
+            Request intent = Request.Read(request); // Same typed boundary as server; no arbitrary pass-through.
+            if (intent.Method != method || expected != null && !expected.Same(intent.Scope!))
+                throw new WireException(WireError.InvalidRequest);
             await Framing.WriteAsync(stream, request, WireLimits.RequestBytes, lifetime.Cancellation).ConfigureAwait(false);
-            byte[] bytes = await Framing.ReadAsync(stream, WireLimits.ResponseBytes, lifetime.Cancellation).ConfigureAwait(false);
+            byte[] bytes = await lifetime.ReadFrameAsync(stream, method == ReadMethod.Screenshot
+                ? WireLimits.CaptureResponseBytes : WireLimits.ResponseBytes).ConfigureAwait(false);
             lifetime.EnsureLive();
-            JObject response = ResponseContracts.Read(bytes, method, name);
+            JObject response = ResponseContracts.Read(bytes, method, id);
+            if (expected != null && (bool)response["ok"]!)
+            {
+                JToken data = response["data"]!;
+                Scope actual = Scope.Read((data["sample"]?["scope"] ?? data["scope"])!);
+                if (!expected.Same(actual)) throw new WireException(WireError.StaleScope);
+                if (method is ReadMethod.Pawns or ReadMethod.Things or ReadMethod.Events
+                    && ((JArray)data["items"]!).Count > intent.Limit)
+                    throw new WireException(WireError.InvalidRequest);
+                if (method == ReadMethod.Pawn && (string?)data["pawn"]?["pawn"] != intent.Target)
+                    throw new WireException(WireError.InvalidRequest);
+            }
             if (method == ReadMethod.Health && response["data"]?["scope"] is JToken scope
                 && Scope.Read(scope).Session != Session)
                 throw new WireException(WireError.StaleScope);
