@@ -55,7 +55,7 @@ Game exposes mutable List<Map>. Between safe samples, a retained enumerator's si
 
 ## Eligible snapshot store
 
-`mod/Observation/SnapshotStore.cs` holds frozen eligible page data for list routes. No route uses it yet.
+`mod/Observation/SnapshotStore.cs` holds frozen eligible page data for list routes. `pawns.list` and `things.list` build and page through it.
 
 - **Frozen rows.** A finished build becomes a snapshot of at most 2,048 projected rows and 2 MiB. Rows are copied in and copied out, never rewritten; later value changes need a fresh query.
 - **Retention.** At most four snapshots, oldest evicted, five seconds from creation. A snapshot is kept only after a passing whole-vector check in the same update.

@@ -20,7 +20,7 @@ A fixed 256-slot identity witness table tracks only retained accepted sources. S
 
 ## Retention, scheduling and safety
 
-Ring limits: 256 entries, 262,144 encoded payload bytes; pages at most 64 items and below response byte ceiling; 128 reusable opaque cursor boundaries with five-second expiry. First read starts oldest available history without pre-bridge completeness claims. Readers do not consume shared history. Overflow/removal gives affected cursors `event_gap` without count/reason; unknown, evicted, reset or expired tokens give `cursor_expired`. Repeated tail reads reuse the boundary. Lifecycle strings are fixed `observation_ready`, `scope_changed`, `observation_resumed`.
+Ring limits: 256 entries, 262,144 encoded payload bytes; pages at most 64 items and below response byte ceiling; 128 reusable opaque cursor boundaries that expire after five seconds unused. First read starts oldest available history without pre-bridge completeness claims. Readers do not consume shared history. Overflow/removal gives affected cursors `event_gap` without count/reason; unknown, evicted, reset or expired tokens give `cursor_expired`. Repeated tail reads reuse the boundary. Lifecycle strings are fixed `observation_ready`, `scope_changed`, `observation_resumed`.
 
 Hook CPU, scanned candidates and nested fields debit the same session Update allowances used by producers (2 ms, 128 candidates, 1,024 fields), not new per-call budgets. Ring/witness storage has separate fixed retention caps. Bounds can cause omission/reset or delayed/refused reads; they do not certify hard preemption of a managed stage or Harmony metadata allocation. More than the remaining candidate allowance in the raw letter list cannot be scanned.
 

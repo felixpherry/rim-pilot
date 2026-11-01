@@ -44,7 +44,6 @@ namespace RimPilot.Protocol
         internal const int SnapshotItems = 2048;
         internal const int SnapshotBytes = 2097152;
         internal const int Snapshots = 4;
-        internal const int ActiveSnapshotBuilds = 1;
         internal const int SnapshotLifetimeMs = 5000;
         internal const int ScanCandidates = 16384;
         internal const int CandidatesPerUpdate = 128;

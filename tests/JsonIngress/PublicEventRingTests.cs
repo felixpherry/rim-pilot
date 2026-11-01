@@ -72,6 +72,14 @@ internal static class PublicEventRingTests
             string last = (string)Read(ring)["next"]!; now = 5000;
             Error(WireError.CursorExpired, () => Read(ring, last)); Error(WireError.CursorExpired, () => Read(ring, Ids.New("e")));
         });
+        Test("reused tail cursor expires only after five idle seconds", () =>
+        {
+            long now = 0; var ring = new PublicEventRing(() => now); ring.Ready(Scope); Add(ring);
+            string tail = (string)Read(ring)["next"]!;
+            for (int step = 0; step < 4; step++) { now += 3000; Equal(tail, (string?)Read(ring, tail)["next"]); }
+            Equal(12000L, now); now += 5000;
+            Error(WireError.CursorExpired, () => Read(ring, tail));
+        });
         Console.WriteLine($"Public event ring: {passed} passed, {failed} failed"); return failed;
     }
     private static void Test(string name, Action action) { try { action(); passed++; } catch (Exception e) { failed++; Console.Error.WriteLine($"FAIL {name}: {e}"); } }

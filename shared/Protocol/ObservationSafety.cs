@@ -1,6 +1,6 @@
 namespace RimPilot.Protocol
 {
-    // Evidence contracts only: future audited game-thread adapters supply these facts.
+    // Evidence contracts only: game-thread adapters (GamePublicEvents, GameNativeRender, GameDeveloperSafety) supply these facts.
     // No game objects, getter evaluation, hooks, epoch tracker, event ring or renderer here.
     internal enum PublicationDisposition
     {

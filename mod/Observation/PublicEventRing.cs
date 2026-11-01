@@ -113,7 +113,7 @@ namespace RimPilot.Mod.Observation
                     if (items.Count == limit) break;
                 }
             Cursor? next = null;
-            foreach (Cursor c in cursors) if (c.After == after) { next = c; break; }
+            foreach (Cursor c in cursors) if (c.After == after) { next = c; next.Expires = now + WireLimits.EventCursorLifetimeMs; break; }
             if (next == null)
             {
                 if (cursors.Count == WireLimits.EventCursors) cursors.RemoveAt(0);

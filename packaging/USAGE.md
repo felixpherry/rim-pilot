@@ -43,7 +43,9 @@ availability. Loading can return `loading`, `not_ready` or an invalidated scope.
 `capabilities` marks a route `available` when its audited producer is registered.
 That does **not** mean the route works on a given game: `things.list` and `resources`
 are reported available yet refused as `unavailable` on every loaded-map launch tested, and
-capabilities cannot say so. Treat a refusal as unknown, never as an empty result.
+capabilities cannot say so. Both routes always refuse whenever the map's raw spawned-thing
+list is over 2,048 members, however few things would be eligible; below that size they have
+not been shown on a real map. Treat a refusal as unknown, never as an empty result.
 
 Explicit-target install/reinstall/uninstall/recover commands exist in
 `scripts/install.py` in the matching trusted source checkout; they are not

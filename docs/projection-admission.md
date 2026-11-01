@@ -1,10 +1,10 @@
 # Exact primitive projection admission
 
-**Building blocks, not observation routes. No baseline family is complete until real-UI proof.** `mod/Observation/` supplies exact admission and primitive limits for adapters. The shown-needs family now has its own reader in pawn detail ([visibility-audit.md#shown-needs](visibility-audit.md#shown-needs)); it replaced the earlier rest/mood-only building block. Host tests and net472 compilation are not Unity Mono, normal-UI or full-profile runtime proof.
+**Shared admission and primitive limits used by the route producers. No baseline family is complete until real-UI proof.** `mod/Observation/` supplies exact admission and primitive limits for adapters. The shown-needs family now has its own reader in pawn detail ([visibility-audit.md#shown-needs](visibility-audit.md#shown-needs)); it replaced the earlier rest/mood-only building block. Host tests and net472 compilation are not Unity Mono, normal-UI or full-profile runtime proof.
 
 ## Gate order and ownership
 
-Trusted game-thread producer must first establish authentication, readiness, developer safety, current scope, accessible loaded map and normal own-pawn/needs-card context. Admission does not supply those witnesses. Future producers must share one session/update deadline and candidate/nested-field/byte budget, preserve cancellation and use `ObservationEpochs.Release` after fresh whole-result eligibility/safety checks. A primitive reader is not permission to publish a partial family or reuse an old lease.
+Trusted game-thread producer must first establish authentication, readiness, developer safety, current scope, accessible loaded map and normal own-pawn/needs-card context. Admission does not supply those witnesses. Producers must share one session/update deadline and candidate/nested-field/byte budget, preserve cancellation and use `ObservationEpochs.Release` after fresh whole-result eligibility/safety checks. A primitive reader is not permission to publish a partial family or reuse an old lease.
 
 `AdmissionRecipe.Check` then requires:
 

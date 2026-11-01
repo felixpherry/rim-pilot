@@ -359,6 +359,7 @@ class InstallTests(unittest.TestCase):
         def collide(name):
             if name == "before-publish":
                 self.target.mkdir()
+                self.target.chmod(0o755)
                 (self.target / "user.txt").write_text("keep")
         with patch.dict(STATE, {"boundary": collide}):
             with self.assertRaises(OSError):
@@ -375,6 +376,7 @@ class InstallTests(unittest.TestCase):
             if name == "before-quarantine":
                 self.target.rename(self.parent / "original-owned")
                 self.target.mkdir()
+                self.target.chmod(0o755)
                 (self.target / "user.txt").write_text("keep")
         with patch.dict(STATE, {"boundary": replace}):
             with self.assertRaisesRegex(RuntimeError, "identity changed"):

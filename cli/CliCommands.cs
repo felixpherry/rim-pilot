@@ -45,8 +45,8 @@ internal static class CliCommands
             if (command.Session != null)
             {
                 using AuthenticatedSession peer = await discovery.ConnectAsync(command.Session);
-                result = new JObject { ["v"] = 1, ["sessions"] = new JArray(new JObject {
-                    ["v"] = 1, ["session"] = peer.Session, ["status"] = "live" }) };
+                result = new JObject { ["v"] = WireLimits.Version, ["sessions"] = new JArray(new JObject {
+                    ["v"] = WireLimits.Version, ["session"] = peer.Session, ["status"] = "live" }) };
             }
             else result = await discovery.ListAsync();
             await output.WriteLineAsync(result.ToString(Formatting.None));

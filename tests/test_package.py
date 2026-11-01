@@ -108,11 +108,12 @@ class PackageTests(unittest.TestCase):
     def test_missing_required_file_or_license_rejected(self):
         for relative in ("mod/RimPilot/About/About.xml", "licenses/dotnet/THIRD-PARTY-NOTICES.TXT"):
             path = self.output / relative
-            content = path.read_bytes()
+            content, mode = path.read_bytes(), stat.S_IMODE(path.stat().st_mode)
             path.unlink()
             with self.assertRaisesRegex(RuntimeError, "allowlist missing"):
                 self.verify()
             path.write_bytes(content)
+            path.chmod(mode)
 
     def test_modified_file_with_self_consistent_hash_still_rejected(self):
         path = self.output / "cli/rim-pilot"

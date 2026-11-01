@@ -192,8 +192,8 @@ your machine.
 ```
 
 **8. A refusal.** Some reads fail by design. A refusal prints the error envelope, a fixed
-code on stderr and exits 69. It is never an empty result. Real example from the final
-package: `things.list` and `resources` return this on every loaded map tried.
+code on stderr and exits 69. It is never an empty result. Real example from package D
+(the evidence build): `things.list` and `resources` return this on every loaded map tried.
 
 ```json
 {"v":1,"session":"s_11111111111111111111111111111111",
@@ -206,14 +206,17 @@ package: `things.list` and `resources` return this on every loaded map tried.
 all it says. It does **not** say the route works on the map in front of you, and it carries
 no reason text for the two routes that do not.
 
-- **Final package, menu launch.** Available: `auth`, `health`, `capabilities`, `summary`,
+- **Evidence package D, menu launch.** Available: `auth`, `health`, `capabilities`, `summary`,
   `pawns.list`, `pawn.get`, `things.list`, `resources`, `ui`, `screenshot`, `events.read`,
   `screenshot.map_view` (with a fixed reason text about its weaker paused and live proof).
   Unsupported: `ui.rendered_controls`, `specialist.structured`.
 - **`things.list` and `resources` are reported available but refuse `unavailable`.** On every
-  loaded map tried, including the final package, the raw list of spawned things was larger
+  loaded map tried, including package D, the raw list of spawned things was larger
   than the cap, so the route refuses before reading anything. Capabilities cannot say so.
   This is a known overstatement, left as is.
+- **Above the cap the refusal is certain, below it nothing is shown.** Whenever the raw list
+  has more than 2,048 members the routes always refuse, however few things are eligible, with
+  no partial list or count. Below the cap they have only host-test evidence, no real-map run.
 - **Treat a refusal as unknown.** Never read it as no things, no resources or no threats. The
   refusal can itself depend on what is on the map, hidden things included, so do not draw
   conclusions from when it appears.
@@ -252,7 +255,7 @@ needs most.
 | `not_ready`, `observation_refused` | Loading, or safety refusal. Wait or stop; do not toggle settings. |
 | `unavailable` | Unknown, hidden, stale or unsupported target, or a route that refuses. Treat as unknown. |
 | `stale_scope` | Root or game changed. Read health or summary again. |
-| `cursor_expired` | Cursor lived over 5 seconds, was evicted, or was reused with another method, scope or limit. Start the query again. |
+| `cursor_expired` | A page cursor is more than 5 seconds old (its snapshot is dropped 5 seconds after it was built, however often it is reused), an event cursor went unused for 5 seconds, a cursor was evicted, or it was reused with another method, scope or limit. Start the query again. |
 | `event_gap` | Event history was lost. Read the summary, then start a fresh event read. |
 | `busy`, `rate_limited`, `timeout` | Back off. Nothing was queued. |
 | `forbidden_method`, `unsupported_method` | No such route exists; there are no actions. |
@@ -270,9 +273,11 @@ needs most.
 
 This page documents commands that exist. It is not an acceptance claim.
 
-- **Shown on the final package:** menu, paused and live reads of summary, own pawns, pawn
+- **Shown on package D:** menu, paused and live reads of summary, own pawns, pawn
   detail, UI, events and decoded screenshots, forbidden-method denials, developer-mode refusal,
   lifecycle invalidation and graceful quit from the main menu, on one copied fixture.
+- **Delivered build E is not that build.** E changes only event-cursor reuse (5 seconds unused),
+  wording and one unused constant; it has host and package evidence, no game rerun.
 - **Not met or not shown:** `things.list` and `resources` always refuse; natural public events
   never appeared; hidden-state, off-camera, fog, invisibility, second-map and every DLC case
   were not tried; capture and first-use time budgets are over; bounded load is unmet.

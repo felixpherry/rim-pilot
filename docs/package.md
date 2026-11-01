@@ -13,7 +13,7 @@ screenshots); see [typed commands](observation-commands.md). Limited exact-relea
 Unity Mono evidence exists on one copied fixture, summarized with its unmet items in
 the [phase-4 evidence summary](../tests/coverage/observation-adversarial.md#phase-4-real-game-evidence-summary):
 `things.list` and `resources` refuse `unavailable` on every loaded-map launch
-tested, natural public events and several budgets are unmet or unverified, and
+tested (they always refuse when the raw spawned-thing list is over 2,048 members), natural public events and several budgets are unmet or unverified, and
 acceptance criteria 2, 3 and 5 remain unmet or unverified. Package verification
 and installer runs are host and filesystem checks, not runtime compatibility
 checks.

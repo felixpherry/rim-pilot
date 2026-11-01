@@ -27,8 +27,7 @@ DIRS = ["About", "Assemblies", "licenses"]
 MAX_JOURNAL = 32768
 
 
-def fail(message):
-    raise RuntimeError(message)
+fail = package.fail
 
 
 def boundary(name):

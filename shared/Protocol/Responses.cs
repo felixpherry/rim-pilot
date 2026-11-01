@@ -137,7 +137,7 @@ namespace RimPilot.Protocol
                 || png == null || png.Length < 8 || png.Length > WireLimits.CapturePngBytes)
                 throw new WireException(WireError.ResponseTooLarge);
             // Stamp requires safe completion evidence, not proof that an adapter collected it correctly.
-            // Future adapter must CheckRelease again after encoding and before publication.
+            // ScreenshotCapture calls CheckRelease again after encoding and before publication.
             string encoded = Convert.ToBase64String(png);
             var chunks = new JArray();
             for (int i = 0; i < encoded.Length; i += WireLimits.CaptureChunkChars)

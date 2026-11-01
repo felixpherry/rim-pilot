@@ -142,7 +142,7 @@ class OperationInventoryTests(unittest.TestCase):
         self.assertEqual(set(implemented), {"MENU-01", "MENU-13", "PAWN-15", "PAWN-16", "UI-13"})
         for ident, evidence in implemented.items():
             with self.subTest(row=ident):
-                self.assertIn("Final package (mod DLL 2a98517a, CLI 8120201c), one copied fixture", evidence)
+                self.assertIn("Evidence package D (mod DLL 2a98517a, CLI 8120201c; delivered build E differs, see the artifact binding), one copied fixture", evidence)
                 self.assertIn("observation-adversarial.md", evidence)
 
     def test_reject_missing_area_duplicate_id_bad_method_and_premature_pass(self):

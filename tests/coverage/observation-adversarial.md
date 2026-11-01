@@ -96,25 +96,29 @@ earlier builds alone.
 ### Artifact binding
 
 Evidence ran on several successive release builds of the mod (A to C) and was then re-run
-in a compact smoke on the delivered package (D). Only D is the delivered artifact.
+in a compact smoke on package D. The package built at the current commit is E, which differs
+from D by a post-evidence fix round (below); E has host and package evidence only, no real-game rerun.
 
 | Build | Mod assembly SHA-256 (prefix) | Exact-release evidence on it | Change noted at the time (unconfirmed) |
 | --- | --- | --- | --- |
 | A | dd4aef42 | menu capture series, paused health and gear/job reproofs, UI cases, live baseline and natural-event poll, developer safety, load/menu lifecycle, quit/restart, capture-budget measurement, ingress/auth/read-only/cursor | reported as the later of the earlier fixes |
 | B | d3b13d0e | bounded-load and snapshot-eviction runs, UI overlay reruns | reported: a no-op developer-mode setting write no longer counted as an unobserved safety interval |
 | C | 21b52054 | one paused health/roster regression reproof | reported: health family presence no longer depends on hidden conditions |
-| D (delivered package) | 2a98517af6f468d10af97e5d19262d9b07dbf8c34784e27e3aaca1d3738b6366 | final-package smoke (below) and installer rerun | no mod or CLI code change recorded since C; build-metadata edits only (see notes) |
+| D (evidence package) | 2a98517af6f468d10af97e5d19262d9b07dbf8c34784e27e3aaca1d3738b6366 | package-D smoke (below) and installer rerun | no mod or CLI code change recorded since C; build-metadata edits only (see notes) |
+| E (delivered package) | 311b9be26167355c0c0a0740119852d08dff34c29ef9ccc463cdb3c23494a89f | none in the real game; host suites, `make build-game` (zero warnings), `make package` and `make verify-package` only | event cursors expire 5 seconds after last use (was 5 seconds after creation); mod description text; one unused constant removed; shared version constant and failure helper reuse; no other behavior change |
 
 - **The ordering and distinguishing change of A, B and C are as the building units reported them, not independently confirmed.** The reported hashes differ between units that each reported no product source edit, and the order the hashes appear in does not match the order the changes were described. That discrepancy was never explained; treat the last column as unconfirmed.
-- **Delivered package (D) hashes.** Mod assembly 2a98517af6f468d10af97e5d19262d9b07dbf8c34784e27e3aaca1d3738b6366; CLI 8120201c6e028e5b56f7d0df02a2c151ffbeb59487cea9253328b206d9ded6e6; bundled JSON library e1e27af7b07eeedf5ce71a9255f0422816a6fc5849a483c6714e1b472044fa9d (unchanged); package tree hash 603fd5ef8d2ed94934ad9b67932dbcbd1df3a41a72a6f09115c2f13fb1a64d1e (from the package root: `find . -type f | sort | xargs sha256sum | sha256sum`). Independent package verification passed; it checks the package against local build outputs and the redistribution allowlist and is not a runtime check.
+- **Evidence package (D) hashes.** Mod assembly 2a98517af6f468d10af97e5d19262d9b07dbf8c34784e27e3aaca1d3738b6366; CLI 8120201c6e028e5b56f7d0df02a2c151ffbeb59487cea9253328b206d9ded6e6; bundled JSON library e1e27af7b07eeedf5ce71a9255f0422816a6fc5849a483c6714e1b472044fa9d (unchanged); package tree hash 603fd5ef8d2ed94934ad9b67932dbcbd1df3a41a72a6f09115c2f13fb1a64d1e (from the package root: `find . -type f | sort | xargs sha256sum | sha256sum`). Independent package verification passed; it checks the package against local build outputs and the redistribution allowlist and is not a runtime check.
+- **Delivered package (E) hashes.** Mod assembly 311b9be26167355c0c0a0740119852d08dff34c29ef9ccc463cdb3c23494a89f; CLI 14f76bdf4285909bb97e2a8c98d99da838d0af5e8f4c1359bc3293468039c2cd; bundled JSON library e1e27af7b07eeedf5ce71a9255f0422816a6fc5849a483c6714e1b472044fa9d (unchanged); package tree hash 5d899eadba216e652869ed8ba41922b43f41c5b1582af4b37a744634c6011356 (same command). `make package` and `make verify-package` passed on it against the installed game's reference assemblies; no Mono or game execution.
+- **What E changed after D, and what that means for the evidence.** The event-cursor change is the only behavior change: a reused event cursor now gets a fresh 5-second life. Pawn and thing page cursors are unchanged (5 seconds from snapshot creation). The 5-second event-cursor expiry shown on D was the old creation-based rule; the new rule has a fake-clock host test and no Mono run. Every real-game result in this file belongs to D (or earlier), not E. Closing this needs one serial guarded smoke on E.
 - **Why D differs from C.** Rebuilding from the committed tree changed the binaries because the build stamped the commit, the remote and the absolute checkout path into binary metadata. Three build-configuration commits removed those inputs (commit in the version string, source-control queries, a path map). The package then reproduced byte for byte from two clean builds and from a fresh clone at a different path, and no personal path remains in it. This is a build-metadata change, not a code change, but it means **D is not hash-equal to C**.
 - **How far the code identity is shown.** For an intermediate build, a comparison of the compiled assembly found every method body byte-identical to C, with differences only in metadata offsets, hashes, version resource and debug directory. The final path-mapped build was not compared that way, and the CLI bundle was not binary-compared; both rest on identical source plus the same build-configuration edits. Evidence on A to C therefore binds to D as same source, different build stamp, not as the same binary.
 - **Build assignment of earlier runs is derived** from retained package snapshots and timestamps, not recorded by each run. Treat it as best-effort.
 - **Private proof retention gap:** raw proof for the earliest runs (menu bootstrap, first roster passes, needs, first UI runs) is no longer retained. Their verdicts rest on records made at the time and on later runs that re-covered the same behavior.
 
-### Final-package smoke (D)
+### Evidence-package smoke (D)
 
-Seven serial guarded launches on the delivered package, each through the real installer into a disposable profile (installed assembly and CLI hashes equal the package), with owned-process cleanup confirmed each time and originals unchanged. It is compact by design: no floods, capture series or scaled UI.
+Seven serial guarded launches on package D, each through the real installer into a disposable profile (installed assembly and CLI hashes equal the package), with owned-process cleanup confirmed each time and originals unchanged. It is compact by design: no floods, capture series or scaled UI.
 
 | Scenario | Result on D | Not shown or failed |
 | --- | --- | --- |
