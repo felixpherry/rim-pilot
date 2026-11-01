@@ -132,13 +132,21 @@ class OperationInventoryTests(unittest.TestCase):
         candidates = {row[3][10:] for row in parsed if row[3].startswith("baseline: ")}
         self.assertEqual(candidates, {"summary", "health", "pawns.list", "pawn.get", "things.list",
                                       "resources", "ui", "events.read"})
-        for phrase in ["No operation row has that game evidence yet", "Zero game-proven operation rows",
-                       "zero game-proven product screenshots", "no control route", "M1 cannot navigate",
+        for phrase in ["Only the rows marked implemented below have it", "Five game-proven operation rows",
+                       "all other rows are unverified", "no control route", "M1 cannot navigate",
                        "not the final exhaustive M4 inventory", "Co-play is deferred to M3"]:
             self.assertIn(phrase, TEXT)
 
+    def test_implemented_rows_are_the_named_final_package_rows_only(self):
+        implemented = {row[1]: row[5] for row in validate(TEXT) if row[4] == "implemented"}
+        self.assertEqual(set(implemented), {"MENU-01", "MENU-13", "PAWN-15", "PAWN-16", "UI-13"})
+        for ident, evidence in implemented.items():
+            with self.subTest(row=ident):
+                self.assertIn("Final package (mod DLL 2a98517a, CLI 8120201c), one copied fixture", evidence)
+                self.assertIn("observation-adversarial.md", evidence)
+
     def test_reject_missing_area_duplicate_id_bad_method_and_premature_pass(self):
-        first = next(line for line in TEXT.splitlines() if line.startswith("| MENU-01 |"))
+        first = next(line for line in TEXT.splitlines() if line.startswith("| MENU-02 |"))
         mutations = [
             "\n".join(line for line in TEXT.splitlines() if not line.startswith("| ODYSSEY-")),
             TEXT.replace(first, first + "\n" + first),

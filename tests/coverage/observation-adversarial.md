@@ -5,8 +5,9 @@ Phase 3 implements producers and client commands. The matrix and tables below ar
 covered authentication/health/capabilities before these adapters existed. Phase-4
 exact-release Mono evidence on one copied fixture is summarized separately, with every
 unmet item, in [Phase-4 real-game evidence summary](#phase-4-real-game-evidence-summary).
-It does not establish M1 acceptance. All 106 operation-inventory rows, including every
-DLC scenario, retain their unverified game-evidence status.
+It does not establish M1 acceptance. Of the 110 operation-inventory rows, only five narrow
+rows (from the final-package re-run on one fixture) are marked implemented; every other row,
+including every DLC scenario, remains unverified, and ten of them carry partial or refusal notes.
 
 ## Source basis
 
@@ -80,8 +81,9 @@ This section consolidates the phase-4 verdicts. It is a public-safe summary: no 
 proof locations, credentials, saves, game content or personal paths. Detailed per-run
 proof is kept privately; this file records only what was concluded and what was **not**.
 It makes **no acceptance claim**: acceptance criteria 2, 3 and 5 stay unmet or
-unverified for the reasons below, no operation-inventory row is promoted, and no
-project-record claim follows.
+unverified for the reasons below, and no project-record claim follows. Inventory rows were
+promoted only from the final-package re-run (see the final-package section), never from the
+earlier builds alone.
 
 ### Evidence classes (never merged)
 
@@ -93,22 +95,40 @@ project-record claim follows.
 
 ### Artifact binding
 
-Evidence below ran on several successive release builds of the mod, not only on the final
-one. The earliest runs (menu baseline, first roster, needs) predate build A and are not
-re-bound to any later artifact. Only the last run in the table used the final mod assembly.
+Evidence ran on several successive release builds of the mod (A to C) and was then re-run
+in a compact smoke on the delivered package (D). Only D is the delivered artifact.
 
-| Build | Mod assembly SHA-256 (prefix) | Exact-release evidence on it | Source change that distinguishes it |
+| Build | Mod assembly SHA-256 (prefix) | Exact-release evidence on it | Change noted at the time (unconfirmed) |
 | --- | --- | --- | --- |
-| A | dd4aef42 | menu capture series, paused health and gear/job reproofs, UI cases, live baseline and natural-event poll, developer safety, load/menu lifecycle, quit/restart, capture-budget measurement, ingress/auth/read-only/cursor | later of the earlier fixes |
-| B | d3b13d0e | bounded-load and snapshot-eviction runs, UI overlay reruns | no-op developer-mode setting write no longer counted as an unobserved safety interval |
-| C (final) | 21b52054f2c146949c43cdcce31d732c4ba7a658176797bb294242207ac6cf94 | one paused health/roster regression reproof | health family presence no longer depends on hidden conditions |
+| A | dd4aef42 | menu capture series, paused health and gear/job reproofs, UI cases, live baseline and natural-event poll, developer safety, load/menu lifecycle, quit/restart, capture-budget measurement, ingress/auth/read-only/cursor | reported as the later of the earlier fixes |
+| B | d3b13d0e | bounded-load and snapshot-eviction runs, UI overlay reruns | reported: a no-op developer-mode setting write no longer counted as an unobserved safety interval |
+| C | 21b52054 | one paused health/roster regression reproof | reported: health family presence no longer depends on hidden conditions |
+| D (delivered package) | 2a98517af6f468d10af97e5d19262d9b07dbf8c34784e27e3aaca1d3738b6366 | final-package smoke (below) and installer rerun | no mod or CLI code change recorded since C; build-metadata edits only (see notes) |
 
-- **Final CLI SHA-256:** 1e5cdb4929c7f35d4b7dd08d4779b76afb23567cdeacf870b5fdfe3deb0949d0.
-- **Final bundled JSON library SHA-256:** e1e27af7b07eeedf5ce71a9255f0422816a6fc5849a483c6714e1b472044fa9d.
-- **Fresh rebuild reproduced build C bit for bit** from the committed source, and independent package verification passed. It checks the package against local build outputs and the redistribution allowlist; it is not a runtime check.
+- **The ordering and distinguishing change of A, B and C are as the building units reported them, not independently confirmed.** The reported hashes differ between units that each reported no product source edit, and the order the hashes appear in does not match the order the changes were described. That discrepancy was never explained; treat the last column as unconfirmed.
+- **Delivered package (D) hashes.** Mod assembly 2a98517af6f468d10af97e5d19262d9b07dbf8c34784e27e3aaca1d3738b6366; CLI 8120201c6e028e5b56f7d0df02a2c151ffbeb59487cea9253328b206d9ded6e6; bundled JSON library e1e27af7b07eeedf5ce71a9255f0422816a6fc5849a483c6714e1b472044fa9d (unchanged); package tree hash 603fd5ef8d2ed94934ad9b67932dbcbd1df3a41a72a6f09115c2f13fb1a64d1e (from the package root: `find . -type f | sort | xargs sha256sum | sha256sum`). Independent package verification passed; it checks the package against local build outputs and the redistribution allowlist and is not a runtime check.
+- **Why D differs from C.** Rebuilding from the committed tree changed the binaries because the build stamped the commit, the remote and the absolute checkout path into binary metadata. Three build-configuration commits removed those inputs (commit in the version string, source-control queries, a path map). The package then reproduced byte for byte from two clean builds and from a fresh clone at a different path, and no personal path remains in it. This is a build-metadata change, not a code change, but it means **D is not hash-equal to C**.
+- **How far the code identity is shown.** For an intermediate build, a comparison of the compiled assembly found every method body byte-identical to C, with differences only in metadata offsets, hashes, version resource and debug directory. The final path-mapped build was not compared that way, and the CLI bundle was not binary-compared; both rest on identical source plus the same build-configuration edits. Evidence on A to C therefore binds to D as same source, different build stamp, not as the same binary.
 - **Build assignment of earlier runs is derived** from retained package snapshots and timestamps, not recorded by each run. Treat it as best-effort.
-- **Final-artifact gap:** apart from the one health regression run, behavior on builds A and B has **not** been re-proven on build C. A compact serial guarded re-confirmation on the final artifact is still required before any verification line is ticked.
 - **Private proof retention gap:** raw proof for the earliest runs (menu bootstrap, first roster passes, needs, first UI runs) is no longer retained. Their verdicts rest on records made at the time and on later runs that re-covered the same behavior.
+
+### Final-package smoke (D)
+
+Seven serial guarded launches on the delivered package, each through the real installer into a disposable profile (installed assembly and CLI hashes equal the package), with owned-process cleanup confirmed each time and originals unchanged. It is compact by design: no floods, capture series or scaled UI.
+
+| Scenario | Result on D | Not shown or failed |
+| --- | --- | --- |
+| Menu | Sessions, health, capabilities, summary (no game or map), ui, events, decoded 1280x720 PNG equal to the normal menu except the pointer; missing, wrong-token and wrong-session requests refused uniformly. | Credits page, other profiles. |
+| Paused | Two limit-2 roster pages with a reused cursor (same snapshot); pawn detail for all four pawns (needs, health and job present on all, gear on the three colonists, no gear family on the animal); four health rows compared with the normal Health tab; ui, events, map PNG equal to the normal frame except the pointer; tick, pointer, selection and windows unchanged. | **Formal gear and job comparison with normal inspection was not completed** on D (a reviewer click landed inside the product interval and the harness pointer check failed the section; operator error, not rerun, no retry). Needs were not compared level by level. |
+| Things and resources | Both refuse `unavailable` (never an empty success) on the paused and the live map. | **Unmet.** Capabilities still reports both `available`; the overstatement is known and unchanged. |
+| Denials and cursors | 45 wire denials (15 forbidden methods, 20 aliases, 10 action-smuggling routes) and 17 command-line usage refusals; repeated paused reads left tick, pointer, UI and three window images byte-identical; pawn and event cursors reusable and expired after 5 seconds; wrong limit or method gave the expiry error. | Thing pages (refused), event gap, second-map binding. |
+| Live | Tick and clock advanced; summary, roster, ui, 12 pawn detail reads and a map PNG worked; six event polls returned only the lifecycle item; paused afterwards the reads were unchanged. | Natural public events never appeared. The 5-second cursor expiry was proved on the paused scene only. Live comparisons are historical samples. |
+| Lifecycle | After return to menu and after reload every old identity was rejected and a fresh scope worked; graceful quit from the main menu removed the descriptor and a restart got a new session; stale credentials refused. | One health call during reload loading exited with no readable reply (known intermittent client refusal, cause unproven). Quit from a loaded colony not shown. |
+| Developer safety | Developer mode on, with the debug-log panel, and off with the panel still open each refused every state route tested; recovery after the panel closed. | Lingering static debug flags, other panels and third-party developer windows untested. |
+| Installer | Eight real installer invocations on a stopped-game scratch target: install, collision refusal, exact reinstall, unknown and modified refusals, uninstall; originals unchanged. | Host and filesystem evidence only. |
+
+- **Final-artifact gap, narrowed not closed.** Smoke D re-confirmed menu, paused, live, lifecycle, quit, denial and developer-safety behavior on the delivered package. Not re-proven on D: the gear and job comparison, needs values, UI overlays other than the inspect window, bounded load, the capture series and budgets, 1920x1080 refusal, natural events and all hidden-state cases. Those rest on A to C, or on nothing.
+- **Acceptance criteria 2, 3 and 5 remain unmet or unverified** after the smoke; no result above changes that.
 
 ### Per-scenario verdicts
 
@@ -120,7 +140,7 @@ Verdict words: **pass** (stated scope only), **partial**, **unmet**, **audit onl
 | Paused roster (own pawns) | pass | Scoped health and summary, two complete limit-2 roster pages with identical rows and no duplicate references, selected UI, before/after tick, pointer, selection and windows unchanged, idle and read-control images byte-identical. | Slaves, mechs, mutants, unnamed animals, secondary maps, positive dead/downed/drafted flags, queued-order variants. |
 | Paused needs | pass, flagged | Recorded as passed in an early batch run. | The raw proof of that run is gone and was never independently reopened. Later runs show needs present on every detail read but no retained value-by-value comparison. Review. |
 | Paused health | pass (this fixture) | Four rows compared with the normal health tab: one timed condition row, three no-condition rows. Reconfirmed on the final build. | Blood loss, injuries, missing parts, non-English text; hidden-condition path (see below). |
-| Paused gear and job | pass (this fixture) | Equipped and worn labels, order and quality match for all three colonists, the animal's gear tab absent and family omitted explicitly; four current public job reports match normal inspection. | Lord text, styled, unique, custom or specialized providers. |
+| Paused gear and job | pass (this fixture) | Equipped and worn labels, order and quality match for all three colonists, the animal's gear tab absent and family omitted explicitly; four current public job reports match normal inspection (earlier build; the formal comparison was not redone on the delivered package). | Lord text, styled, unique, custom or specialized providers. |
 | Things and resources | **unmet** | Both routes return the fixed `unavailable` refusal on every launch, because the raw spawned-thing source exceeds its complete-source cap before traversal. | Any item, stack, total, position, off-camera, page or footprint comparison. |
 | UI (selection and windows) | partial | Eligible selection, exact ordinary window kinds, absent rendered controls, titles and custom internals, truthful unsupported rendered-controls capability, complete useful product PNGs for map, gear, menu, Options, Research and mod-settings overlays (after a proven defect repair). | Scaled UI (game rejects 1.25x at 1280x720), partially offscreen window (nothing draggable through normal UI), custom or mod screens (none seen). |
 | Live baseline | partial | Summary 3/3, roster 3/3, UI 3/3, pawn detail 12/12, map PNG 3/3 (decoded, complete, upright; game clock and pawns visibly advanced). | Things and resources; sample-by-sample normal-UI comparison (live state moves); slave, mech, mutant, secondary-map and DLC variants. |
@@ -134,7 +154,7 @@ Verdict words: **pass** (stated scope only), **partial**, **unmet**, **audit onl
 | Quit and restart | pass (main menu), flagged | Graceful UI quit removed the product's own descriptor and exited on its own; replacement session cannot be retargeted by old identity or record. | Quit from a loaded colony, abrupt-death leftovers (host only). Accepted harness corrections, below. |
 | Bounded load | **unmet** | Transport quotas, worker and snapshot-build limits and eviction behave as documented; healthy-peer recovery after every flood. | See first-use overrun and resource notes below. |
 | Capture budget | **unmet** | 36/36 release captures complete, upright, fresh at 1280x720; a real 1920x1080 launch refuses with a size error and writes nothing. | See capture hitch notes below. |
-| Installer | pass (host/filesystem) | Real installer, eight invocations on a stopped-game scratch target; refusals preserve inventory; originals unchanged. Not Mono, game or shutdown evidence. | Must be redone on the final package at final verification. |
+| Installer | pass (host/filesystem) | Real installer, eight invocations on a stopped-game scratch target; refusals preserve inventory; originals unchanged. Redone on the delivered package (D) with the same outcomes. Not Mono, game or shutdown evidence. | Human enabling of the mod is manual and was not shown. |
 
 ### Unmet and unverified register
 
