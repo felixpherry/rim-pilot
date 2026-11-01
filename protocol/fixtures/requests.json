@@ -1,0 +1,30 @@
+{
+  "note":"Synthetic public fixtures only. All-zero token is not a usable credential.",
+  "accepted":[
+    {"v":1,"id":"a","method":"auth","params":{"session":"s_11111111111111111111111111111111","token":"0000000000000000000000000000000000000000000000000000000000000000"}},
+    {"v":1,"id":"h","method":"health","params":{}},
+    {"v":1,"id":"c","method":"capabilities","params":{}},
+    {"v":1,"id":"s","method":"summary","params":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222"}}},
+    {"v":1,"id":"p","method":"pawns.list","params":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222","game":"g_33333333333333333333333333333333","map":"m_44444444444444444444444444444444"},"limit":64}},
+    {"v":1,"id":"d","method":"pawn.get","params":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222","game":"g_33333333333333333333333333333333","map":"m_44444444444444444444444444444444"},"pawn":"p_55555555555555555555555555555555"}},
+    {"v":1,"id":"t","method":"things.list","params":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222","game":"g_33333333333333333333333333333333","map":"m_44444444444444444444444444444444"},"limit":1,"cursor":"q_66666666666666666666666666666666"}},
+    {"v":1,"id":"r","method":"resources","params":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222","game":"g_33333333333333333333333333333333","map":"m_44444444444444444444444444444444"}}},
+    {"v":1,"id":"u","method":"ui","params":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222"}}},
+    {"v":1,"id":"i","method":"screenshot","params":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222"}}},
+    {"v":1,"id":"e","method":"events.read","params":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222"},"limit":64,"cursor":"e_77777777777777777777777777777777"}}
+  ],
+  "rejected":[
+    {"error":"VersionMismatch","request":{"v":2,"id":"x","method":"health","params":{}}},
+    {"error":"InvalidRequest","request":{"v":1,"id":"x","method":"health","params":{"token":"never-echo"}}},
+    {"error":"InvalidRequest","request":{"v":1,"id":"../x","method":"health","params":{}}},
+    {"error":"InvalidRequest","request":{"v":1,"id":"x","method":"summary","params":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222","game":null}}}},
+    {"error":"InvalidRequest","request":{"v":1,"id":"x","method":"things.list","params":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222"},"limit":1}}},
+    {"error":"InvalidRequest","request":{"v":1,"id":"x","method":"events.read","params":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222"},"limit":0}}},
+    {"error":"InvalidRequest","request":{"v":1,"id":"x","method":"events.read","params":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222"},"limit":65}}},
+    {"error":"InvalidRequest","request":{"v":1,"id":"x","method":"events.read","params":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222"},"limit":1,"cursor":"q_66666666666666666666666666666666"}}},
+    {"error":"InvalidRequest","request":{"v":1,"id":"x","method":"screenshot","params":{"scope":{"session":"s_11111111111111111111111111111111","root":"r_22222222222222222222222222222222"},"path":"/private/output.png"}}},
+    {"error":"ForbiddenMethod","request":{"v":1,"id":"x","method":"click","params":{"x":1,"y":2}}},
+    {"error":"UnsupportedMethod","request":{"v":1,"id":"x","method":"raw.input","params":{}}},
+    {"error":"InvalidRequest","request":{"v":1,"id":"x","method":"health","params":{},"$type":"System.Object"}}
+  ]
+}

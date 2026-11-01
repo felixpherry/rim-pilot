@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+  <Import Project="../../shared/Json/JsonDependency.props" />
+  <Import Project="../../shared/Protocol/Protocol.props" />
+  <ItemGroup>
+    <Compile Include="../../mod/Bridge/ProcessLifecycle.cs" Link="Mod/ProcessLifecycle.cs" />
+    <Compile Include="../../mod/Bridge/ReadDispatcher.cs" Link="Mod/ReadDispatcher.cs" />
+    <Compile Include="../../mod/Bridge/ProducerScheduler.cs" Link="Mod/ProducerScheduler.cs" />
+    <Compile Include="../../mod/Bridge/DeveloperSafetySampler.cs" Link="Mod/DeveloperSafetySampler.cs" />
+    <Compile Include="../../mod/Bridge/ObservationEpochs.cs" Link="Mod/ObservationEpochs.cs" />
+    <Compile Include="../../mod/Bridge/RenderProvenance.cs" Link="Mod/RenderProvenance.cs" />
+    <Compile Include="../../mod/Observation/ProjectionAdmission.cs" Link="Mod/ProjectionAdmission.cs" />
+    <Compile Include="../../mod/Observation/PrimitiveProjection.cs" Link="Mod/PrimitiveProjection.cs" />
+    <Compile Include="../../mod/Observation/TargetGate.cs" Link="Mod/TargetGate.cs" />
+    <Compile Include="../../mod/Observation/SnapshotStore.cs" Link="Mod/SnapshotStore.cs" />
+    <Compile Include="../../mod/Observation/SummaryProjection.cs" Link="Mod/SummaryProjection.cs" />
+    <Compile Include="../../mod/Observation/PawnProjection.cs" Link="Mod/PawnProjection.cs" />
+    <Compile Include="../../mod/Observation/ThingProjection.cs" Link="Mod/ThingProjection.cs" />
+    <Compile Include="../../mod/Observation/UiProjection.cs" Link="Mod/UiProjection.cs" />
+    <Compile Include="../../mod/Observation/BoundedCapturePng.cs" Link="Mod/BoundedCapturePng.cs" />
+    <Compile Include="../../mod/Observation/ScreenshotCapture.cs" Link="Mod/ScreenshotCapture.cs" />
+    <Compile Include="../../mod/Observation/PublicEventRing.cs" Link="Mod/PublicEventRing.cs" />
+    <Compile Include="../../mod/Observation/PublicEventText.cs" Link="Mod/PublicEventText.cs" />
+    <Compile Include="../../mod/Observation/PublicEventWitnesses.cs" Link="Mod/PublicEventWitnesses.cs" />
+    <Compile Include="../../mod/Observation/JobProjection.cs" Link="Mod/JobProjection.cs" />
+    <Compile Include="../../mod/Observation/NeedsProjection.cs" Link="Mod/NeedsProjection.cs" />
+    <Compile Include="../../mod/Observation/HealthProjection.cs" Link="Mod/HealthProjection.cs" />
+    <Compile Include="../../mod/Observation/GearProjection.cs" Link="Mod/GearProjection.cs" />
+    <Compile Include="../../cli/SessionDiscovery.cs" Link="Cli/SessionDiscovery.cs" />
+    <Compile Include="../../cli/CliCommands.cs" Link="Cli/CliCommands.cs" />
+    <Compile Include="../../cli/ObservationCommand.cs" Link="Cli/ObservationCommand.cs" />
+    <Compile Include="../../cli/PngOutput.cs" Link="Cli/PngOutput.cs" />
+    <None Include="../../protocol/fixtures/*.json" Link="fixtures/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

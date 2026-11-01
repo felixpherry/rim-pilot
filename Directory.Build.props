@@ -1,0 +1,16 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Version>0.1.0</Version>
+    <Deterministic>true</Deterministic>
+    <!-- Keep binaries independent of the git commit and remote (version stamp and SourceLink in the PDB
+         both embed it), so docs-only commits do not change them. -->
+    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <!-- Map the checkout root to a fixed token so binaries do not embed or depend on the build path. -->
+    <PathMap>$([MSBuild]::EnsureTrailingSlash('$(MSBuildThisFileDirectory)'))=/_/</PathMap>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+</Project>

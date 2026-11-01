@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+  <name>Rim-pilot</name>
+  <author>Rim-pilot contributors</author>
+  <packageId>rimpilot.bridge</packageId>
+  <modVersion>0.1.0</modVersion>
+  <supportedVersions>
+    <li>1.6</li>
+  </supportedVersions>
+  <modDependencies>
+    <li>
+      <packageId>brrainz.harmony</packageId>
+      <displayName>Harmony</displayName>
+      <downloadUrl>https://github.com/pardeike/HarmonyRimWorld</downloadUrl>
+    </li>
+  </modDependencies>
+  <loadAfter>
+    <li>brrainz.harmony</li>
+  </loadAfter>
+  <description>Local authenticated observation bridge under development. Health, capabilities and read-only observation routes (summary, colonists, things, resources, UI, public events, screenshots); coverage is partial and not fully verified in the real game. Things and resources refuse as unavailable whenever the map's raw spawned-thing list is over 2,048 members (every real map tried) even though capabilities reports them available; treat a refusal as unknown, never as empty. No gameplay or UI input routes. Requires separately installed Harmony. Enable manually and restart; no settings or mod-order edits are performed by the bridge.</description>
+</ModMetaData>

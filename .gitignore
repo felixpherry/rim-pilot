@@ -28,6 +28,10 @@ Saves/
 *.rws.old
 *.rwtmp
 
+# Python caches
+__pycache__/
+*.py[cod]
+
 # Editor and OS files
 .vs/
 .idea/

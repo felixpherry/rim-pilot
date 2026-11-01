@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+"""Run the checksum-pinned SDK from a private user cache; never install globally."""
+import fcntl
+import hashlib
+import json
+import os
+from pathlib import Path
+import platform
+import shutil
+import subprocess
+import sys
+import tarfile
+import tempfile
+import urllib.request
+
+ROOT = Path(__file__).resolve().parent.parent
+
+
+def main():
+    lock = json.loads((ROOT / "scripts/sdk.lock.json").read_text())
+    if platform.system() != "Linux" or platform.machine() not in ("x86_64", "AMD64"):
+        raise RuntimeError("Pinned SDK supports Linux x64 only.")
+    if json.loads((ROOT / "global.json").read_text())["sdk"]["version"] != lock["version"]:
+        raise RuntimeError("global.json and SDK lock disagree.")
+    cache = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "rim-pilot"
+    if not cache.is_absolute():
+        raise RuntimeError("XDG_CACHE_HOME must be absolute.")
+    cache.mkdir(parents=True, exist_ok=True, mode=0o700)
+    sdk = cache / "dotnet" / lock["version"]
+    marker = sdk / ".rim-pilot-sdk.sha512"
+    with (cache / "sdk-install.lock").open("w") as guard:
+        fcntl.flock(guard, fcntl.LOCK_EX)
+        if not marker.exists() or marker.read_text().strip() != lock["sha512"]:
+            if sdk.exists():
+                raise RuntimeError("Unverified SDK directory exists; remove it explicitly before retrying.")
+            archive = cache / f"dotnet-sdk-{lock['version']}-{lock['rid']}.tar.gz"
+            if not archive.exists():
+                with tempfile.NamedTemporaryFile(dir=cache, delete=False) as target:
+                    temporary = Path(target.name)
+                    try:
+                        with urllib.request.urlopen(lock["url"], timeout=120) as response:
+                            shutil.copyfileobj(response, target)
+                        target.close()
+                        temporary.replace(archive)
+                    finally:
+                        temporary.unlink(missing_ok=True)
+            with archive.open("rb") as source:
+                digest = hashlib.file_digest(source, "sha512").hexdigest()
+            if digest != lock["sha512"]:
+                raise RuntimeError("SDK SHA-512 mismatch; archive not extracted. Remove cached archive to retry.")
+            sdk.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+            with tempfile.TemporaryDirectory(dir=sdk.parent) as stage:
+                with tarfile.open(archive, "r:gz") as source:
+                    source.extractall(stage, filter="data")
+                (Path(stage) / ".rim-pilot-sdk.sha512").write_text(digest + "\n")
+                Path(stage).rename(sdk)
+    env = os.environ.copy()
+    env.update({
+        "DOTNET_ROOT": str(sdk),
+        "DOTNET_MULTILEVEL_LOOKUP": "0",
+        "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
+        "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": "1",
+        "DOTNET_NOLOGO": "1",
+        "DOTNET_CLI_HOME": str(cache / "cli-home"),
+        "NUGET_PACKAGES": str(cache / "nuget"),
+    })
+    actual = subprocess.check_output([str(sdk / "dotnet"), "--version"], env=env, cwd=ROOT, text=True).strip()
+    if actual != lock["version"]:
+        raise RuntimeError("Installed SDK version differs from pin.")
+    os.execve(sdk / "dotnet", [str(sdk / "dotnet"), *sys.argv[1:]], env)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (OSError, RuntimeError, tarfile.TarError) as error:
+        print(f"SDK bootstrap failed: {error}", file=sys.stderr)
+        sys.exit(1)
